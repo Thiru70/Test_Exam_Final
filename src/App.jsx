@@ -1,11 +1,14 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import EmailVerification from './pages/EmailVerification';
-import OtpVerification from './pages/OtpVerification';
-import InfoForm from './pages/InfoForm';
 import FaceDetectionComponent from './components/FaceDetection';
+
+import HomePage from './Common/pages/HomePage';
+import LoginPage from './Common/pages/LoginPage'
+import EmailVerification from './Common/pages/EmailVerification'
+import OtpVerification from './Common/pages/OtpVerification'
+import InfoForm from './Common/pages/InfoForm'
+import StudentDashboard from './User/Components/StudentDashboard';
+
 
 function App() {
   return (
@@ -17,6 +20,7 @@ function App() {
           <Route path="/email-verification" element={<EmailVerification />} />
           <Route path="/otp-verification" element={<OtpVerification />} />
           <Route path="/complete-profile" element={<InfoForm />} />
+          <Route path="/student-dashboard" element={<StudentDashboard/>} />
           <Route path="*" element={<Navigate to="/" replace />} />
           <Route path="/Face-Detection" element={ <FaceDetectionComponent />} />
 

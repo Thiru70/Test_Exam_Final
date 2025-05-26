@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import emailjs from 'emailjs-com';
 import Sidebar from '../components/Sidebar';
 import AuthCard from '../components/AuthCard';
-import { EMAILJS_CONFIG } from '../services/emailConfig';
+import { EMAILJS_CONFIG } from '../../services/emailConfig';
 
 const OtpVerification = () => {
   const [otp, setOtp] = useState(['', '', '', '']);
