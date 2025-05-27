@@ -12,7 +12,6 @@ import AudioDetectionComponent from './User/Components/AudioDetection';
 import Instructions from './User/Components/Instructions'
 import AptitudeTest from './User/Components/ApptitudeSection'
 import CodingSection from './User/Components/CodingSection';
-// Import your InterviewInvitation component
 import InterviewInvitation from './User/Components/InterviewInvitation';
 
 const FaceDetectionWrapper = () => {
