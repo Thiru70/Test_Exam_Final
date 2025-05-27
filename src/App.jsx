@@ -8,12 +8,22 @@ import OtpVerification from './Common/pages/OtpVerification'
 import InfoForm from './Common/pages/InfoForm'
 import StudentDashboard from './User/Components/StudentDashboard';
 import FaceDetection from './User/Components/FaceDetection';
+import MyTest from './Admin/Pages/MyTest';
+import Respondents from './Admin/Pages/Respondents';
+import Layout from './Admin/Components/Layout';
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen w-full bg-sky-100">
+      <div className="min-h-screen w-full">
         <Routes>
+           {/* Admin routes with layout */}
+        <Route element={<Layout />}>
+          <Route path="/myTest" element={<MyTest />} />
+          <Route path="/respondents" element={<Respondents />} />
+        </Route>
+
+          {/* User */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/email-verification" element={<EmailVerification />} />
