@@ -2,79 +2,80 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 import HomePage from './Common/pages/HomePage';
-import LoginPage from './Common/pages/LoginPage'
-import EmailVerification from './Common/pages/EmailVerification'
-import OtpVerification from './Common/pages/OtpVerification'
-import InfoForm from './Common/pages/InfoForm'
+import LoginPage from './Common/pages/LoginPage';
+import EmailVerification from './Common/pages/EmailVerification';
+import OtpVerification from './Common/pages/OtpVerification';
+import InfoForm from './Common/pages/InfoForm';
 import StudentDashboard from './User/Components/StudentDashboard';
 import FaceDetectionComponent from './User/Components/FaceDetection';
 import AudioDetectionComponent from './User/Components/AudioDetection';
-import Instructions from './User/Components/Instructions'
-import AptitudeTest from './User/Components/ApptitudeSection'
+import Instructions from './User/Components/Instructions';
+import AptitudeTest from './User/Components/ApptitudeSection';
 import CodingSection from './User/Components/CodingSection';
 import InterviewInvitation from './User/Components/InterviewInvitation';
+import FaceDetection from './User/Components/FaceDetection';
+import { SelectionProcessStages } from './User/Components/SelectionProcessStages';
+import MyTest from './Admin/Pages/MyTest';
+import Respondents from './Admin/Pages/Respondents';
+import Layout from './Admin/Components/Layout';
 
+// Wrappers for navigation
 const FaceDetectionWrapper = () => {
   const navigate = useNavigate();
-  
-  const handleNavigateToAudio = () => {
-    navigate('/audio-detection');
-  };
-  
+  const handleNavigateToAudio = () => navigate('/audio-detection');
   return <FaceDetectionComponent onNavigateToAudio={handleNavigateToAudio} />;
 };
 
 const AudioDetectionWrapper = () => {
   const navigate = useNavigate();
-  
-  const handleNavigateNext = () => {
-    navigate('/Instructions');
-  };
-  
+  const handleNavigateNext = () => navigate('/Instructions');
   return <AudioDetectionComponent onNavigateNext={handleNavigateNext} />;
 };
 
-// Add this wrapper for AptitudeTest
 const AptitudeTestWrapper = () => {
   const navigate = useNavigate();
-  
-  const handleNavigateToCoding = () => {
-    navigate('/Coding-Section');
-  };
-  
+  const handleNavigateToCoding = () => navigate('/Coding-Section');
   return <AptitudeTest onNavigateToCoding={handleNavigateToCoding} />;
 };
 
 const CodingSectionWrapper = () => {
   const navigate = useNavigate();
-  
-  const handleNavigateToInterview = () => {
-    navigate('/interview-invitation');
-  };
-  
+  const handleNavigateToInterview = () => navigate('/interview-invitation');
   return <CodingSection onNavigateToInterview={handleNavigateToInterview} />;
 };
 
 function App() {
   return (
     <Router>
-      <div className="App">
-        <Routes>
-          <Route path="/" element={<Navigate to="/home" replace />} />
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/email-verification" element={<EmailVerification />} />
-          <Route path="/otp-verification" element={<OtpVerification />} />
-          <Route path="/info-form" element={<InfoForm />} />
-          <Route path="/student-dashboard" element={<StudentDashboard />} />
-          <Route path="/face-detection" element={<FaceDetectionWrapper />} />
-          <Route path="/audio-detection" element={<AudioDetectionWrapper />} />
-          <Route path="/Instructions" element={<Instructions />} />
-          <Route path="/Aptitude-Test" element={<AptitudeTestWrapper />} />
-          <Route path="/Coding-Section" element={<CodingSectionWrapper />} />
-          <Route path="/interview-invitation" element={<InterviewInvitation />} />
-        </Routes>
-      </div>
+      <Routes>
+        {/* Common Routes */}
+        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/email-verification" element={<EmailVerification />} />
+        <Route path="/otp-verification" element={<OtpVerification />} />
+        <Route path="/info-form" element={<InfoForm />} />
+
+        {/* User Routes */}
+        <Route path="/student-dashboard" element={<StudentDashboard />} />
+        <Route path="/face-detection" element={<FaceDetectionWrapper />} />
+        <Route path="/audio-detection" element={<AudioDetectionWrapper />} />
+        <Route path="/Instructions" element={<Instructions />} />
+        <Route path="/Aptitude-Test" element={<AptitudeTestWrapper />} />
+        <Route path="/Coding-Section" element={<CodingSectionWrapper />} />
+        <Route path="/interview-invitation" element={<InterviewInvitation />} />
+        <Route path="/face-detect" element={<FaceDetection />} />
+        <Route path="/selection-process" element={<SelectionProcessStages />} />
+
+        {/* Admin Routes (wrapped in layout) */}
+        <Route element={<Layout />}>
+          <Route path="/myTest" element={<MyTest />} />
+          <Route path="/respondents" element={<Respondents />} />
+        </Route>
+
+        {/* Fallback Route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </Router>
   );
 }
