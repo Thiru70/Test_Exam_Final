@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, RefreshCw, Check } from 'lucide-react';
 
-const FaceDetectionComponent = () => {
+const FaceDetectionComponent = ({ onNavigateToAudio }) => {
   const [isDetected, setIsDetected] = useState(false);
   const [capturedPhotos, setCapturedPhotos] = useState({
     front: null,
@@ -23,7 +23,6 @@ const FaceDetectionComponent = () => {
   useEffect(() => {
     startCamera();
     
-    // Simulate face detection after 2 seconds
     const timer = setTimeout(() => {
       setIsDetected(true);
     }, 2000);
@@ -68,12 +67,10 @@ const FaceDetectionComponent = () => {
       [currentStep]: photoDataUrl
     }));
 
-    // Move to next step
     const currentIndex = steps.indexOf(currentStep);
     if (currentIndex < steps.length - 1) {
       setCurrentStep(steps[currentIndex + 1]);
       setIsDetected(false);
-      // Simulate detection for next step
       setTimeout(() => setIsDetected(true), 1500);
     }
   };
@@ -87,35 +84,28 @@ const FaceDetectionComponent = () => {
     setTimeout(() => setIsDetected(true), 1500);
   };
 
-  const resetAll = () => {
-    setCapturedPhotos({
-      front: null,
-      leftSide: null,
-      rightSide: null
-    });
-    setCurrentStep('front');
-    setIsDetected(false);
-    setTimeout(() => setIsDetected(true), 2000);
-  };
+
+
+  const allPhotosCapured = Object.values(capturedPhotos).every(Boolean);
 
   return (
-    <div className="h-screen w-full bg-sky-100 overflow-hidden">
-      <div className="w-full h-full bg-white shadow-lg p-4 md:p-8 flex flex-col">
+    <div className="min-h-screen w-full p-4">
+      <div className="max-w-6xl mx-auto p-6">
         {/* Header */}
-        <h1 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-4">
+        <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
           Video call detection
         </h1>
 
-        <div className="flex flex-col lg:flex-row gap-6 md:gap-8 w-full flex-1 min-h-0">
-          {/* Left side - Instructions and status */}
-          <div className="lg:w-1/3 space-y-4 flex flex-col justify-center">
+        <div className="flex flex-col lg:flex-row gap-8 items-center">
+          {/* Left side - Instructions */}
+          <div className="lg:w-1/3 space-y-4">
             <div className="text-gray-700">
               {!isDetected ? (
-                <p className="text-base md:text-lg">
+                <p className="text-lg">
                   Face not detected. Please ensure you are in a well-lit environment and positioned properly.
                 </p>
               ) : (
-                <p className="text-base md:text-lg text-green-600 font-semibold">
+                <p className="text-lg text-green-600 font-semibold">
                   Face detected! You're all set to proceed
                 </p>
               )}
@@ -127,9 +117,10 @@ const FaceDetectionComponent = () => {
             </div>
           </div>
 
-          {/* Center - Camera feed */}
-          <div className="lg:w-1/3 flex flex-col items-center justify-center">
-            <div className="relative border-4 border-gray-300 rounded-lg overflow-hidden w-full max-w-sm">
+          {/* Center - Camera feed and captured photos */}
+          <div className="lg:w-1/3 flex flex-col items-center">
+            {/* Camera feed */}
+            <div className="relative border-4 border-gray-300 rounded-lg overflow-hidden w-full max-w-sm mb-6">
               <video
                 ref={videoRef}
                 autoPlay
@@ -141,9 +132,9 @@ const FaceDetectionComponent = () => {
               
               {/* Face detection overlay */}
               {isDetected && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-green-500 rounded-full p-2">
-                    <Check className="w-6 h-6 md:w-8 md:h-8 text-white" />
+                <div className="absolute top-4 right-4">
+                  <div className="bg-green-500 rounded-full p-1">
+                    <Check className="w-6 h-6 text-white" />
                   </div>
                 </div>
               )}
@@ -152,8 +143,8 @@ const FaceDetectionComponent = () => {
             <canvas ref={canvasRef} className="hidden" />
 
             {/* Captured photos preview */}
-            <div className="mt-6 w-full">
-              <div className="grid grid-cols-3 gap-3 md:gap-4 max-w-sm mx-auto">
+            <div className="w-full">
+              <div className="grid grid-cols-3 gap-4 max-w-sm mx-auto">
                 {steps.map((step) => (
                   <div key={step} className="text-center">
                     <div className="border-2 border-gray-300 rounded-lg overflow-hidden mb-2 aspect-square bg-gray-100 flex items-center justify-center">
@@ -165,14 +156,14 @@ const FaceDetectionComponent = () => {
                           style={{ transform: 'scaleX(-1)' }}
                         />
                       ) : (
-                        <Camera className="w-6 h-6 md:w-8 md:h-8 text-gray-400" />
+                        <Camera className="w-8 h-8 text-gray-400" />
                       )}
                     </div>
-                    <p className="text-xs md:text-sm font-medium text-gray-700">
+                    <p className="text-sm font-medium text-gray-700 mb-1">
                       {stepLabels[step]}
                     </p>
                     {currentStep === step && (
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mx-auto mt-1"></div>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mx-auto"></div>
                     )}
                   </div>
                 ))}
@@ -181,10 +172,10 @@ const FaceDetectionComponent = () => {
           </div>
 
           {/* Right side - Action buttons */}
-          <div className="lg:w-1/3 flex flex-col items-center justify-center space-y-3 md:space-y-4">
+          <div className="lg:w-1/3 flex flex-col items-center space-y-4">
             <button
               onClick={retakePhoto}
-              className="bg-gray-700 hover:bg-gray-800 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 w-full max-w-32"
+              className="bg-gray-700 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 w-32"
             >
               <RefreshCw className="w-4 h-4" />
               Retake
@@ -193,7 +184,7 @@ const FaceDetectionComponent = () => {
             <button
               onClick={capturePhoto}
               disabled={!isDetected}
-              className={`px-4 md:px-6 py-2 md:py-3 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 w-full max-w-32 ${
+              className={`px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 w-32 ${
                 isDetected
                   ? 'bg-gray-700 hover:bg-gray-800 text-white'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -203,28 +194,17 @@ const FaceDetectionComponent = () => {
               Click
             </button>
 
-            <button
-              onClick={resetAll}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg font-medium transition-colors duration-200 w-full max-w-32"
-            >
-              Reset All
-            </button>
-          </div>
-        </div>
-
-        {/* Completion message */}
-        {Object.values(capturedPhotos).every(Boolean) && (
-          <div className="mt-4 p-3 md:p-4 bg-green-50 border border-green-200 rounded-lg text-center flex flex-row gap-10 justify-space between">
-            <p className="text-green-800 font-semibold text-sm md:text-base mt-[25px]">
-              🎉 All photos captured successfully! You can now proceed.
-            </p>
-             <button
-                className="bg-green-600 hover:bg-green-700 text-white px-4 md:px-6 py-2 md:py-3 rounded-lg font-medium transition-colors duration-200 w-full max-w-32 mt-4"
+            {/* Next button - only show when all photos are captured */}
+            {allPhotosCapured && (
+              <button
+                onClick={() => onNavigateToAudio && onNavigateToAudio()}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 w-32"
               >
                 Next
               </button>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
