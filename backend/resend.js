@@ -5,7 +5,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 async function sendOtpEmail(toEmail, otp) {
   try {
     const data = await resend.emails.send({
-      from: 'Your Name <shivakumarramesh972@gmail.com>',
+      from: 'Your Name <ashwinighone985@gmail.com>',
       to: toEmail,
       subject: 'Your OTP Code',
       html: `<p>Your OTP is <strong>${otp}</strong>. It will expire in 5 minutes.</p>`,

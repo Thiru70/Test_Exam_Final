@@ -6,6 +6,7 @@ import LoginPage from './Common/pages/LoginPage'
 import EmailVerification from './Common/pages/EmailVerification'
 import OtpVerification from './Common/pages/OtpVerification'
 import InfoForm from './Common/pages/InfoForm'
+import StudentForm from './User/Components/StudentForm';
 import StudentDashboard from './User/Components/StudentDashboard';
 import FaceDetection from './User/Components/FaceDetection';
 
@@ -21,6 +22,7 @@ function App() {
           <Route path="/complete-profile" element={<InfoForm />} />
           <Route path="/student-dashboard" element={<StudentDashboard/>} />
           <Route path="/face-detect" element={<FaceDetection/>} />
+          <Route path="/StudentForm" element={<StudentForm/>}/>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
