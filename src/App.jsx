@@ -18,8 +18,9 @@ import { SelectionProcessStages } from './User/Components/SelectionProcessStages
 import MyTest from './Admin/Pages/MyTest';
 import Respondents from './Admin/Pages/Respondents';
 import Layout from './Admin/Components/Layout';
+import MonacoEditor from './User/Components/MonacoCodeEditer';
 
-// Wrappers for navigation
+
 const FaceDetectionWrapper = () => {
   const navigate = useNavigate();
   const handleNavigateToAudio = () => navigate('/audio-detection');
@@ -74,7 +75,7 @@ function App() {
         </Route>
 
         {/* Fallback Route */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/Monaco-editor" element={<MonacoEditor />} />
       </Routes>
     </Router>
   );
