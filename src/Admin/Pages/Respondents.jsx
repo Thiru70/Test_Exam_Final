@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 const MyTest = () => {
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
  const testData = [
   {
     id: 1,
@@ -26,7 +29,7 @@ const MyTest = () => {
        <div className="p-3">
         <div className="flex justify-end gap-3 p-5">
         
-        <button onClick={() => setOpen(!open)} className="bg-[#0BC279] text-white px-4 py-2 rounded-md text-sm hover:bg-green-700">
+        <button onClick={() => navigate('/emailForm')} className="bg-[#0BC279] text-white px-4 py-2 rounded-md text-sm hover:bg-green-700">
             Create mail
         </button>
         

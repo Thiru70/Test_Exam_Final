@@ -20,6 +20,12 @@ import Respondents from './Admin/Pages/Respondents';
 import Layout from './Admin/Components/Layout';
 import MonacoEditor from './User/Components/MonacoCodeEditer';
 
+import EmailForm from './Admin/Pages/EmailForm';
+import Result from './Admin/Pages/Result';
+import ResultTable from './Admin/Pages/ResultTable';
+import TestSheetReview from './Admin/Pages/TestSheetReview';
+import Testconfiguration from './Admin/Pages/Testconfiguration';
+import QuestionSet from './Admin/Pages/QuestionSet';
 
 const FaceDetectionWrapper = () => {
   const navigate = useNavigate();
@@ -72,6 +78,12 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/myTest" element={<MyTest />} />
           <Route path="/respondents" element={<Respondents />} />
+          <Route path="/database" element={<Result />} />
+          <Route path="/emailForm" element={<EmailForm />} />
+          <Route path="/resultTable" element={<ResultTable />} />
+          <Route path="/testReview" element={<TestSheetReview />} />
+          <Route path="/testconfiguration" element={<Testconfiguration />} />
+          <Route path="/questionSet" element={<QuestionSet />} />
         </Route>
 
         {/* Fallback Route */}
