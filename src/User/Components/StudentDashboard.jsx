@@ -39,7 +39,6 @@ function StudentDashboard() {
   }, []);
   return (
     <div className="font-sans">
-
       <header className="flex items-center justify-between px-4 shadow-md bg-white">
         <div className="text-lg font-bold text-blue-600 flex flex-col items-center">
           <img src="/logo.png" alt="Logo" className="w-16 h-16 mr-2" />
@@ -191,34 +190,61 @@ function StudentDashboard() {
         </section>
       </section>
 
-      <section className="py-12 bg-blue-100 text-center">
-        <h2 className="text-2xl font-bold mb-10">Why Choose Invites?</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4">
-          {[
-            {
-              title: "AI-Powered Screening",
-              desc: "Find the right candidates faster with intelligent resume matching.",
-            },
-            {
-              title: "Customizable Application Forms",
-              desc: "Create personalized forms to get the information you need.",
-            },
-            {
-              title: "Streamlined Interview Scheduling",
-              desc: "Easily manage interview slots and scheduling with automation.",
-            },
-            {
-              title: "Easy Communication",
-              desc: "Send emails, messages, and feedback effortlessly.",
-            },
-          ].map((feature, idx) => (
-            <div key={idx} className="bg-white rounded-xl p-6 shadow-md">
-              <h3 className="font-semibold text-blue-600 mb-2">
-                {feature.title}
-              </h3>
-              <p className="text-gray-600 text-sm">{feature.desc}</p>
+      <section className="pt-12 bg-blue-50">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-bold text-gray-800">
+            Why Choose Invites?
+          </h2>
+        </div>
+        <div className="max-w-7xl mx-auto px-4">
+          <h3 className="text-xl font-semibold mb-6">Features</h3>
+          <div className="w-full flex gap-2">
+            <div className="w-full flex flex-col gap-5">
+              {[
+                {
+                  number: "1",
+                  title: "AI-Powered Screening",
+                  desc: "Find the right candidates faster with intelligent resume matching.",
+                },
+                {
+                  number: "2",
+                  title: "Customizable Application Forms",
+                  desc: "Create personalized forms to get the exact information you need.",
+                },
+                {
+                  number: "3",
+                  title: "Seamless Interview Scheduling",
+                  desc: "Track every candidate’s progress throughout the recruitment process.",
+                },
+                {
+                  number: "4",
+                  title: "Easy Communication",
+                  desc: "Send bulk emails, messages, and feedback to candidates instantly.",
+                },
+              ].map((feature, idx) => (
+                <div
+                  key={idx}
+                  className={`flex w-[100%] ${idx % 2 == 0 ? "" : "ml-32"}`}
+                >
+                  {/* Numbered Circle */}
+                  <div className="w-14 h-14 rounded-full bg-gradient-to-r from-cyan-900 to-cyan-500 text-white flex items-center justify-center font-bold text-lg -mr-3 z-40">
+                    ({feature.number})
+                  </div>
+
+                  {/* Feature Text Box */}
+                  <div className="w-14 h-14 flex justify-between items-center flex-1 bg-gradient-to-r from-cyan-900 to-cyan-500 text-white rounded-md px-7 py-1">
+                    <span className="font-semibold whitespace-nowrap">
+                      {feature.title}
+                    </span>
+                    <span className="text-sm text-white">{feature.desc}</span>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+            <div className="-mt-4 z-40">
+              <img src="./interview.png" alt="" />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -243,10 +269,9 @@ function StudentDashboard() {
         </div>
       </section>
       <div className="bg-blue-50 px-6 py-10 rounded-lg flex flex-col md:flex-row items-center justify-between gap-8">
-  
         <div className="w-full md:w-1/3 flex justify-center">
           <img
-            src="./persons.png" 
+            src="./persons.png"
             alt="Skater"
             className="w-64 h-64 object-contain"
           />
@@ -257,17 +282,18 @@ function StudentDashboard() {
             Ready to Get Started?
           </h2>
           <p className="text-gray-600">
-            Join thousands of companies and candidates using Invites to make <br />
+            Join thousands of companies and candidates using Invites to make{" "}
+            <br />
             hiring simple and effective.
           </p>
 
           <div className="mt-4 flex justify-between">
-          <button className= " h-12 bg-cyan-700 text-white px-5 py-2 rounded-md shadow hover:bg-cyan-800 transition">
-            Get Started Today
-          </button>
+            <button className=" h-12 bg-cyan-700 text-white px-5 py-2 rounded-md shadow hover:bg-cyan-800 transition">
+              Get Started Today
+            </button>
 
             <img
-              src="./persons.png" 
+              src="./persons.png"
               alt="Handshake"
               className="w-40 h-auto mx-auto md:mx-0"
             />
@@ -277,7 +303,6 @@ function StudentDashboard() {
 
       <footer className="bg-white border-t border-gray-200 py-10 px-6 md:px-16 pt-20 pb-20">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-gray-700">
-
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
             <img src="/logo.png" alt="Logo" className="w-16 h-16 mb-2" />
             <h2 className="text-blue-600 font-bold text-lg">SCHOOL NAME</h2>
@@ -328,7 +353,7 @@ function StudentDashboard() {
             </p>
           </div>
 
-          <div className="bg-blue-500 text-white rounded-xl p-6">
+          <div className="bg-blue-500 text-white rounded-xl p-6 h-52">
             <h3 className="text-lg font-semibold mb-2">
               Subscribe to our newsletter
             </h3>
