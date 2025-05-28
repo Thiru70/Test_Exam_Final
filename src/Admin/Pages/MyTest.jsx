@@ -1,9 +1,14 @@
 import React, { useEffect, useState, useRef } from "react";
 import Folder from "../../Asstes/Folder.png";
+import { useNavigate } from "react-router-dom";
 
 const MyTest = () => {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [documentOpen, setDocumentOpen] = useState(false);
+  const [eligibility, setEligibility] = useState('');
+  const [showDateInputs, setShowDateInputs] = useState('');
+  const [showTimeInputs, setShowTimeInputs] = useState('');
   const fileInputRef = useRef(null);
 
   const handleBrowseClick = () => {
@@ -65,9 +70,7 @@ const MyTest = () => {
         {open && (
           <div className="absolute right-2 top-36 mt-2 w-48 bg-[#F4F4F4] border rounded-md shadow z-50">
             <div
-              onClick={() => {
-                setOpen(false);
-              }}
+              onClick={() => navigate('/testconfiguration')}
               className="px-4 py-2 text-sm hover:bg-gray-100 border-b-2 cursor-pointer"
             >
               Start from scratch
@@ -110,9 +113,9 @@ const MyTest = () => {
       
 {documentOpen && (
          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4">
-              <div className="bg-white p-4 md:p-6 rounded-2xl shadow-lg w-full max-w-sm md:max-w-md relative">
+              <div className="bg-white p-4 md:p-6 rounded-2xl shadow-lg w-full max-w-sm md:max-w-md relative overflow-x-auto">
                 <div className=" flex justify-between border-b-2 border-black">
-                  <h2 className="font-semibold">Import test</h2>
+                  <h2 className="font-semibold mt-2 mb-2 text-lg">Import test</h2>
                   
                 </div>
             <h1
@@ -123,6 +126,149 @@ const MyTest = () => {
             <p>Supports a single-choice, multiple-choice and description questions</p>
             <p>Add media afterwards</p>
             <p>For best results use our templates</p>
+            <div className="mt-2 mb-2">
+              <h1 className="font-semibold ">Test Name</h1>
+              <input type="text" className="border w-full p-2 focus:outline-none mb-2"/>
+              
+              <h1 className="text-lg font-semibold mb-2">Eligibility</h1>
+
+      <div className="flex gap-5 mb-4">
+        <label className="flex items-center gap-2">
+          <input
+            type="radio"
+            name="eligibility"
+            value="yes"
+            checked={eligibility === 'yes'}
+            onChange={(e) => setEligibility(e.target.value)}
+          />
+          <span>Yes</span>
+        </label>
+
+        <label className="flex items-center gap-2">
+          <input
+            type="radio"
+            name="eligibility"
+            value="no"
+            checked={eligibility === 'no'}
+            onChange={(e) => setEligibility(e.target.value)}
+          />
+          <span>No</span>
+        </label>
+      </div>
+
+      {eligibility === 'yes' && (
+        <div className="space-y-4">
+          <div>
+            <label className="block mb-1">12th Percentage</label>
+            <input
+              type="number"
+              className="border border-gray-300 rounded px-3 py-2 w-full"
+              placeholder="Enter 12th %"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1">10th Percentage</label>
+            <input
+              type="number"
+              className="border border-gray-300 rounded px-3 py-2 w-full"
+              placeholder="Enter 10th %"
+            />
+          </div>
+        </div>
+      )}
+      
+          <h1 className="text-lg font-semibold mb-2">Date</h1>
+
+      <div className="flex gap-4 mb-4">
+        <label className="flex items-center gap-2">
+          <input
+            type="radio"
+            name="dateOption"
+            value="yes"
+            checked={showDateInputs === 'yes'}
+            onChange={(e) => setShowDateInputs(e.target.value)}
+          />
+          <span>Yes</span>
+        </label>
+
+        <label className="flex items-center gap-2">
+          <input
+            type="radio"
+            name="dateOption"
+            value="no"
+            checked={showDateInputs === 'no'}
+            onChange={(e) => setShowDateInputs(e.target.value)}
+          />
+          <span>No</span>
+        </label>
+      </div>
+
+      {showDateInputs === 'yes' && (
+        <div className="space-y-4">
+          <div>
+            <label className="block mb-1">Start Date</label>
+            <input
+              type="date"
+              className="border border-gray-300 rounded px-3 py-2 w-full"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1">End Date</label>
+            <input
+              type="date"
+              className="border border-gray-300 rounded px-3 py-2 w-full"
+            />
+          </div>
+        </div>
+      )}
+      <h1 className="text-lg font-semibold mb-2">Time</h1>
+
+      <div className="flex gap-4 mb-4">
+        <label className="flex items-center gap-2">
+          <input
+            type="radio"
+            name="timeOption"
+            value="yes"
+            checked={showTimeInputs === 'yes'}
+            onChange={(e) => setShowTimeInputs(e.target.value)}
+          />
+          <span>Yes</span>
+        </label>
+
+        <label className="flex items-center gap-2">
+          <input
+            type="radio"
+            name="timeOption"
+            value="no"
+            checked={showTimeInputs === 'no'}
+            onChange={(e) => setShowTimeInputs(e.target.value)}
+          />
+          <span>No</span>
+        </label>
+      </div>
+
+      {showTimeInputs === 'yes' && (
+        <div className="space-y-4">
+          <div>
+            <label className="block mb-1">Start Time</label>
+            <input
+              type="time"
+              className="border border-gray-300 rounded px-3 py-2 w-full"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1">End Time</label>
+            <input
+              type="time"
+              className="border border-gray-300 rounded px-3 py-2 w-full"
+            />
+          </div>
+        </div>
+      )}
+            </div>
             <div className="border-2 border-dashed border-blue-400 rounded-lg p-5 text-center max-w-sm w-full">
         <div className="flex flex-col items-center space-y-4">
           <img
