@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import Folder from "../../Asstes/Folder.png";
 import { useNavigate } from "react-router-dom";
+import { Dialog } from 'primereact/dialog';
 
 const MyTest = () => {
   const navigate = useNavigate();
@@ -111,175 +112,132 @@ const MyTest = () => {
         ))}
       </div>
       
-{documentOpen && (
-         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4">
-              <div className="bg-white p-4 md:p-6 rounded-2xl shadow-lg w-full max-w-sm md:max-w-md relative overflow-x-auto">
-                <div className=" flex justify-between border-b-2 border-black">
-                  <h2 className="font-semibold mt-2 mb-2 text-lg">Import test</h2>
-                  
-                </div>
-            <h1
-              className="font-semibold"
-            >
-              Upload a file containing a list of questions
-            </h1>
-            <p>Supports a single-choice, multiple-choice and description questions</p>
-            <p>Add media afterwards</p>
-            <p>For best results use our templates</p>
-            <div className="mt-2 mb-2">
-              <h1 className="font-semibold ">Test Name</h1>
-              <input type="text" className="border w-full p-2 focus:outline-none mb-2"/>
-              
-              <h1 className="text-lg font-semibold mb-2">Eligibility</h1>
+<Dialog
+      header="Import Test"
+      visible={documentOpen}
+      style={{ width: '40rem' }}
+      onHide={() => setDocumentOpen(false)}
+      className="bg-white p-6"
+    >
+      <div className="space-y-4">
+        <p className="font-semibold">Upload a file containing a list of questions</p>
+        <p>Supports single-choice, multiple-choice and description questions</p>
+        <p>Add media afterwards</p>
+        <p>For best results, use our templates</p>
 
-      <div className="flex gap-5 mb-4">
-        <label className="flex items-center gap-2">
-          <input
-            type="radio"
-            name="eligibility"
-            value="yes"
-            checked={eligibility === 'yes'}
-            onChange={(e) => setEligibility(e.target.value)}
-          />
-          <span>Yes</span>
-        </label>
-
-        <label className="flex items-center gap-2">
-          <input
-            type="radio"
-            name="eligibility"
-            value="no"
-            checked={eligibility === 'no'}
-            onChange={(e) => setEligibility(e.target.value)}
-          />
-          <span>No</span>
-        </label>
-      </div>
-
-      {eligibility === 'yes' && (
-        <div className="space-y-4">
-          <div>
-            <label className="block mb-1">12th Percentage</label>
-            <input
-              type="number"
-              className="border border-gray-300 rounded px-3 py-2 w-full"
-              placeholder="Enter 12th %"
-            />
-          </div>
-
-          <div>
-            <label className="block mb-1">10th Percentage</label>
-            <input
-              type="number"
-              className="border border-gray-300 rounded px-3 py-2 w-full"
-              placeholder="Enter 10th %"
-            />
-          </div>
+        <div>
+          <label className="font-semibold">Test Name</label>
+          <input type="text" className="border w-full p-2 focus:outline-none mb-2" />
         </div>
-      )}
-      
-          <h1 className="text-lg font-semibold mb-2">Date</h1>
 
-      <div className="flex gap-4 mb-4">
-        <label className="flex items-center gap-2">
-          <input
-            type="radio"
-            name="dateOption"
-            value="yes"
-            checked={showDateInputs === 'yes'}
-            onChange={(e) => setShowDateInputs(e.target.value)}
-          />
-          <span>Yes</span>
-        </label>
-
-        <label className="flex items-center gap-2">
-          <input
-            type="radio"
-            name="dateOption"
-            value="no"
-            checked={showDateInputs === 'no'}
-            onChange={(e) => setShowDateInputs(e.target.value)}
-          />
-          <span>No</span>
-        </label>
-      </div>
-
-      {showDateInputs === 'yes' && (
-        <div className="space-y-4">
-          <div>
-            <label className="block mb-1">Start Date</label>
-            <input
-              type="date"
-              className="border border-gray-300 rounded px-3 py-2 w-full"
-            />
+        {/* Eligibility */}
+        <div>
+          <label className="text-lg font-semibold mb-2">Eligibility</label>
+          <div className="flex gap-4 mb-2">
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="eligibility"
+                value="yes"
+                checked={eligibility === 'yes'}
+                onChange={(e) => setEligibility(e.target.value)}
+              />
+              <span>Yes</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="eligibility"
+                value="no"
+                checked={eligibility === 'no'}
+                onChange={(e) => setEligibility(e.target.value)}
+              />
+              <span>No</span>
+            </label>
           </div>
 
-          <div>
-            <label className="block mb-1">End Date</label>
-            <input
-              type="date"
-              className="border border-gray-300 rounded px-3 py-2 w-full"
-            />
-          </div>
-        </div>
-      )}
-      <h1 className="text-lg font-semibold mb-2">Time</h1>
-
-      <div className="flex gap-4 mb-4">
-        <label className="flex items-center gap-2">
-          <input
-            type="radio"
-            name="timeOption"
-            value="yes"
-            checked={showTimeInputs === 'yes'}
-            onChange={(e) => setShowTimeInputs(e.target.value)}
-          />
-          <span>Yes</span>
-        </label>
-
-        <label className="flex items-center gap-2">
-          <input
-            type="radio"
-            name="timeOption"
-            value="no"
-            checked={showTimeInputs === 'no'}
-            onChange={(e) => setShowTimeInputs(e.target.value)}
-          />
-          <span>No</span>
-        </label>
-      </div>
-
-      {showTimeInputs === 'yes' && (
-        <div className="space-y-4">
-          <div>
-            <label className="block mb-1">Start Time</label>
-            <input
-              type="time"
-              className="border border-gray-300 rounded px-3 py-2 w-full"
-            />
-          </div>
-
-          <div>
-            <label className="block mb-1">End Time</label>
-            <input
-              type="time"
-              className="border border-gray-300 rounded px-3 py-2 w-full"
-            />
-          </div>
-        </div>
-      )}
+          {eligibility === 'yes' && (
+            <div className="space-y-3">
+              <input type="number" placeholder="Enter 12th %" className="w-full border p-2" />
+              <input type="number" placeholder="Enter 10th %" className="w-full border p-2" />
             </div>
-            <div className="border-2 border-dashed border-blue-400 rounded-lg p-5 text-center max-w-sm w-full">
-        <div className="flex flex-col items-center space-y-4">
-          <img
-            src={Folder}
-            alt="Upload icon"
-            className="w-12 h-12"
-          />
-          <p className="text-gray-700 text-sm">
-            Select a pdf, microsoft word (.docx) or text file to upload
+          )}
+        </div>
+
+        {/* Date */}
+        <div>
+          <label className="text-lg font-semibold mb-2">Date</label>
+          <div className="flex gap-4 mb-2">
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="dateOption"
+                value="yes"
+                checked={showDateInputs === 'yes'}
+                onChange={(e) => setShowDateInputs(e.target.value)}
+              />
+              <span>Yes</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="dateOption"
+                value="no"
+                checked={showDateInputs === 'no'}
+                onChange={(e) => setShowDateInputs(e.target.value)}
+              />
+              <span>No</span>
+            </label>
+          </div>
+
+          {showDateInputs === 'yes' && (
+            <div className="space-y-3">
+              <input type="date" className="w-full border p-2" />
+              <input type="date" className="w-full border p-2" />
+            </div>
+          )}
+        </div>
+
+        {/* Time */}
+        <div>
+          <label className="text-lg font-semibold mb-2">Time</label>
+          <div className="flex gap-4 mb-2">
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="timeOption"
+                value="yes"
+                checked={showTimeInputs === 'yes'}
+                onChange={(e) => setShowTimeInputs(e.target.value)}
+              />
+              <span>Yes</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="timeOption"
+                value="no"
+                checked={showTimeInputs === 'no'}
+                onChange={(e) => setShowTimeInputs(e.target.value)}
+              />
+              <span>No</span>
+            </label>
+          </div>
+
+          {showTimeInputs === 'yes' && (
+            <div className="space-y-3">
+              <input type="time" className="w-full border p-2" />
+              <input type="time" className="w-full border p-2" />
+            </div>
+          )}
+        </div>
+
+        {/* File Upload */}
+        <div className="border-2 border-dashed border-blue-400 rounded-lg p-5 text-center">
+          <img src={Folder} alt="Upload icon" className="w-12 h-12 mx-auto mb-2" />
+          <p className="text-gray-700 text-sm mb-2">
+            Select a PDF, Microsoft Word (.docx), or text file to upload
           </p>
-          <hr className="border-gray-300 w-full" />
           <button
             onClick={handleBrowseClick}
             className="border border-blue-500 text-blue-500 px-4 py-1 rounded hover:bg-blue-50"
@@ -295,13 +253,15 @@ const MyTest = () => {
           />
         </div>
       </div>
-      <div className="flex justify-end mt-3 gap-3">
-        <button className="border-2 px-4 py-2 rounded-md" onClick={() => setDocumentOpen(false)}>Cancal</button>
-        <button className="bg-[#808080] text-white px-4 py-2 rounded-md">Import</button>
+
+      {/* Footer Buttons */}
+      <div className="flex justify-end mt-5 gap-3">
+        <button className="border px-4 py-2 rounded-md" onClick={() => setDocumentOpen(false)}>
+          Cancel
+        </button>
+        <button className="bg-gray-700 text-white px-4 py-2 rounded-md">Import</button>
       </div>
-          </div>
-          </div>
-        )}
+    </Dialog>
     </div>
     
     </>
