@@ -10,7 +10,9 @@ const InfoForm = () => {
   
   const [formData, setFormData] = useState({
     fullName: '',
+    email: '',
     phoneNumber: '',
+    dateOfBirth: '',
     password: '',
     confirmPassword: '',
     ...(userType === 'company' ? { 
@@ -70,6 +72,22 @@ const InfoForm = () => {
           </div>
           
           <div className="flex flex-col gap-1.5">
+            <label htmlFor="email" className="text-sm text-gray-600 font-medium">
+              Email Address
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter your email address"
+              required
+            />
+          </div>
+          
+          <div className="flex flex-col gap-1.5">
             <label htmlFor="phoneNumber" className="text-sm text-gray-600 font-medium">
               Phone Number
             </label>
@@ -81,6 +99,22 @@ const InfoForm = () => {
               onChange={handleChange}
               className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter your phone number"
+              required
+            />
+          </div>
+          
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="dateOfBirth" className="text-sm text-gray-600 font-medium">
+              Date of Birth
+            </label>
+            <input
+              id="dateOfBirth"
+              name="dateOfBirth"
+              type="date"
+              value={formData.dateOfBirth}
+              onChange={handleChange}
+              className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="DD-MM-YYYY"
               required
             />
           </div>

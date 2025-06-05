@@ -73,7 +73,7 @@ const FaceDetectionComponent = ({ onNavigateToAudio }) => {
         await new Promise(resolve => (blazeScript.onload = resolve));
       }
 
-      // Load model explicitly from known working URL
+    
       const model = await window.blazeface.load({
         modelUrl: 'https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/model.json',
       });
