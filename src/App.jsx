@@ -33,7 +33,7 @@ import QuestionSet from './Admin/Pages/QuestionSet';
 const FaceDetectionWrapper = () => {
   const navigate = useNavigate();
   const handleNavigateToAudio = () => navigate('/audio-detection');
-  return <FaceDetectionComponent onNavigateToAudio={handleNavigateToAudio} />;
+  return <FaceDetectionComponent  onNavigateToAudio={handleNavigateToAudio} />;
 };
 
 const AudioDetectionWrapper = () => {

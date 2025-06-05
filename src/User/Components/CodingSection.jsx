@@ -172,9 +172,9 @@ const CodingSection = ({ onNavigateToInterview }) => {
 
     const preventContextMenu = (e) => e.preventDefault();
     
-    // NEW: Prevent copy-paste via context menu and other methods
+    
     const preventCopyPaste = (e) => {
-      // Prevent copy/paste/cut events
+     
       if (['copy', 'paste', 'cut'].includes(e.type)) {
         e.preventDefault();
         handleCopyPasteViolation(e.type);

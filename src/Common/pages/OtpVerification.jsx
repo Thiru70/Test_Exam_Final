@@ -64,20 +64,30 @@ const OtpVerification = () => {
     setError('');
     
     // Get stored OTP
-    const storedOtp = localStorage.getItem('currentOtp');
     const enteredOtp = otp.join('');
-    
-    setTimeout(() => {
-      setLoading(false);
-      
-      if (storedOtp === enteredOtp) {
-        // OTP is valid
-        navigate(`/complete-profile?type=${userType}`);
-      } else {
-        // Invalid OTP
-        setError('The verification code you entered is incorrect. Please try again.');
-      }
-    }, 1000);
+
+fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/api/submit-otp', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ email, otp: enteredOtp, user_type: userType })
+})
+  .then(res => res.json())
+  .then(data => {
+    setLoading(false);
+    if (data.success) {
+      navigate(`/complete-profile?type=${userType}`);
+    } else {
+      setError(data.message || 'Invalid verification code.');
+    }
+  })
+  .catch(err => {
+    setLoading(false);
+    setError('Server error. Please try again.');
+    console.error(err);
+  });
+
   };
   
   const handleResend = () => {
@@ -107,25 +117,28 @@ const OtpVerification = () => {
     };
     
     // Send email with new OTP
-    emailjs.send(
-      EMAILJS_CONFIG.SERVICE_ID,
-      EMAILJS_CONFIG.OTP_TEMPLATE_ID,
-      templateParams,
-      EMAILJS_CONFIG.PUBLIC_KEY
-    ).then((response) => {
-      console.log('New OTP email sent successfully!', response.status);
-      
-      // Store new OTP in localStorage
-      localStorage.setItem('currentOtp', newOtp);
-      localStorage.setItem('otpEmail', userEmail);
-      
-      setLoading(false);
-      
-    }).catch((err) => {
-      console.error('Failed to send new OTP email:', err);
-      setLoading(false);
-      alert('Failed to resend verification code. Please try again.');
-    });
+    fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/api/verify-email', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ email: userEmail, user_type: userType })
+})
+  .then(res => res.json())
+  .then(data => {
+    setLoading(false);
+    if (data.success) {
+      alert('A new verification code has been sent.');
+    } else {
+      alert(data.message || 'Failed to resend verification code.');
+    }
+  })
+  .catch(err => {
+    setLoading(false);
+    console.error('Failed to resend OTP:', err);
+    alert('Server error. Please try again.');
+  });
+
   };
 
   return (

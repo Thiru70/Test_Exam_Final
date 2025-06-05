@@ -16,17 +16,18 @@ const FaceDetectionComponent = ({ onNavigateToAudio }) => {
   const detectionCanvasRef = useRef(null);
   const modelRef = useRef(null);
   const animationIdRef = useRef(null);
-  const lastDetectionTimeRef = useRef(0);
-  const fallbackIntervalRef = useRef(null);
 
   useEffect(() => {
     startCamera();
     loadTensorFlowAndModel();
 
     return () => {
-      if (animationIdRef.current) cancelAnimationFrame(animationIdRef.current);
-      if (stream) stream.getTracks().forEach(track => track.stop());
-      if (fallbackIntervalRef.current) clearInterval(fallbackIntervalRef.current);
+      if (animationIdRef.current) {
+        cancelAnimationFrame(animationIdRef.current);
+      }
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
     };
   }, []);
 
@@ -36,8 +37,8 @@ const FaceDetectionComponent = ({ onNavigateToAudio }) => {
         video: {
           width: { ideal: 640 },
           height: { ideal: 480 },
-          facingMode: 'user',
-        },
+          facingMode: 'user'
+        }
       });
       setStream(mediaStream);
       if (videoRef.current) {
@@ -57,72 +58,114 @@ const FaceDetectionComponent = ({ onNavigateToAudio }) => {
       setIsModelLoading(true);
 
       if (!window.tf) {
-        const tfScript = document.createElement('script');
-        tfScript.src = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js';
-        tfScript.onload = () => console.log('TensorFlow.js loaded');
-        document.head.appendChild(tfScript);
-        await new Promise(resolve => (tfScript.onload = resolve));
+        const tfUrls = [
+          'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js',
+          'https://unpkg.com/@tensorflow/tfjs@4.10.0/dist/tf.min.js',
+          'https://cdnjs.cloudflare.com/ajax/libs/tensorflow/4.10.0/tf.min.js'
+        ];
+
+        let tfLoaded = false;
+        for (const url of tfUrls) {
+          try {
+            await new Promise((resolve, reject) => {
+              const script = document.createElement('script');
+              script.src = url;
+              script.onload = resolve;
+              script.onerror = reject;
+              document.head.appendChild(script);
+            });
+            tfLoaded = true;
+            break;
+          } catch (e) {
+            console.warn(`Failed to load TensorFlow from ${url}`, e);
+          }
+        }
+
+        if (!tfLoaded) {
+          throw new Error('Failed to load TensorFlow.js from all sources');
+        }
       }
 
       await window.tf.ready();
 
       if (!window.blazeface) {
-        const blazeScript = document.createElement('script');
-        blazeScript.src = 'https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js';
-        document.head.appendChild(blazeScript);
-        await new Promise(resolve => (blazeScript.onload = resolve));
+        const blazefaceUrls = [
+          'https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js',
+          'https://unpkg.com/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js'
+        ];
+
+        let blazefaceLoaded = false;
+        for (const url of blazefaceUrls) {
+          try {
+            await new Promise((resolve, reject) => {
+              const script = document.createElement('script');
+              script.src = url;
+              script.onload = resolve;
+              script.onerror = reject;
+              document.head.appendChild(script);
+            });
+            blazefaceLoaded = true;
+            break;
+          } catch (e) {
+            console.warn(`Failed to load BlazeFace from ${url}`, e);
+          }
+        }
+
+        if (!blazefaceLoaded) {
+          throw new Error('Failed to load BlazeFace model from all sources');
+        }
       }
 
-    
-      const model = await window.blazeface.load({
-        modelUrl: 'https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/model.json',
-      });
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      console.log('Loading BlazeFace model...');
+      const model = await window.blazeface.load();
+      console.log('BlazeFace model loaded successfully');
 
       modelRef.current = model;
       setIsModelLoaded(true);
       setIsModelLoading(false);
+      setError(null);
+
       detectFaces();
-    } catch (e) {
-      console.warn('Model loading failed:', e);
-      setError('Model loading failed - using fallback detection');
+    } catch (error) {
+      console.error('Error loading model:', error);
+      setError(`Failed to load face detection model: ${error.message}`);
       setIsModelLoading(false);
+
       startSimpleFaceDetection();
     }
   };
 
   const startSimpleFaceDetection = () => {
-    setIsModelLoaded(true);
-    fallbackIntervalRef.current = setInterval(() => {
+    console.log('Using fallback face detection');
+    setError('Using simplified face detection (ML model unavailable)');
+
+    const interval = setInterval(() => {
       if (videoRef.current && videoRef.current.readyState >= 2) {
         setIsDetected(true);
         setIsCorrectPosition(true);
-        setDetectedFaces([
-          {
-            probability: 0.95,
-            topLeft: [160, 120],
-            bottomRight: [480, 360],
-          },
-        ]);
+        setDetectedFaces([{ probability: 0.95, topLeft: [100, 100], bottomRight: [300, 300] }]);
       }
-    }, 500);
+    }, 1000);
+
+    return () => clearInterval(interval);
   };
 
+  // Check if face is centered (front-facing)
   const isFaceCentered = (faceBox, videoWidth) => {
-    const [x1] = faceBox.topLeft;
-    const [x2] = faceBox.bottomRight;
+    const [x1, y1] = faceBox.topLeft;
+    const [x2, y2] = faceBox.bottomRight;
     const faceCenterX = (x1 + x2) / 2;
+
+    // Check if face is reasonably centered (within middle 60% of frame)
     const leftBound = videoWidth * 0.2;
     const rightBound = videoWidth * 0.8;
+
     return faceCenterX >= leftBound && faceCenterX <= rightBound;
   };
 
-  const detectFaces = async (timestamp = 0) => {
-    if (timestamp - lastDetectionTimeRef.current < 300) {
-      animationIdRef.current = requestAnimationFrame(detectFaces);
-      return;
-    }
-    lastDetectionTimeRef.current = timestamp;
-
+  const detectFaces = async () => {
     if (modelRef.current && videoRef.current && detectionCanvasRef.current) {
       const video = videoRef.current;
       const canvas = detectionCanvasRef.current;
@@ -131,10 +174,12 @@ const FaceDetectionComponent = ({ onNavigateToAudio }) => {
       if (video.readyState >= 2) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         try {
           const predictions = await modelRef.current.estimateFaces(video, false);
+
           setDetectedFaces(predictions);
 
           if (predictions.length === 1) {
@@ -146,28 +191,44 @@ const FaceDetectionComponent = ({ onNavigateToAudio }) => {
             setIsCorrectPosition(false);
           }
 
-          predictions.forEach(pred => {
-            const [x, y] = pred.topLeft;
-            const [x2, y2] = pred.bottomRight;
+          // Draw bounding boxes
+          predictions.forEach((prediction) => {
+            const [x, y] = prediction.topLeft;
+            const [x2, y2] = prediction.bottomRight;
             const width = x2 - x;
             const height = y2 - y;
-            const isCentered = isFaceCentered(pred, canvas.width);
 
-            ctx.strokeStyle = isCentered ? '#00ff00' : '#ff0000';
+            const isCentered = isFaceCentered(prediction, canvas.width);
+
+            // Draw bounding box with color based on position
+            ctx.strokeStyle = predictions.length === 1 && isCentered ? '#00ff00' : '#ff0000';
             ctx.lineWidth = 3;
             ctx.strokeRect(x, y, width, height);
-            ctx.fillStyle = isCentered ? '#00ff00' : '#ff0000';
+
+            // Draw confidence score
+            ctx.fillStyle = predictions.length === 1 && isCentered ? '#00ff00' : '#ff0000';
             ctx.font = '16px Arial';
-            ctx.fillText(`${(pred.probability * 100).toFixed(1)}%`, x, y - 10);
+            ctx.fillText(
+              `${(prediction.probability * 100).toFixed(1)}%`,
+              x,
+              y - 10
+            );
           });
 
-          // Draw center guide
+          // Draw center guide zone
           ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+          ctx.lineWidth = 2;
           ctx.setLineDash([5, 5]);
-          ctx.strokeRect(canvas.width * 0.2, 0, canvas.width * 0.6, canvas.height);
+
+          // Center zone guide
+          const centerX = canvas.width * 0.2;
+          const centerWidth = canvas.width * 0.6;
+          ctx.strokeRect(centerX, 0, centerWidth, canvas.height);
+
           ctx.setLineDash([]);
-        } catch (err) {
-          console.error('Face detection error:', err);
+
+        } catch (error) {
+          console.error('Face detection error:', error);
         }
       }
     }
@@ -179,43 +240,72 @@ const FaceDetectionComponent = ({ onNavigateToAudio }) => {
     if (!videoRef.current || !canvasRef.current || !isDetected || !isCorrectPosition) return;
 
     const canvas = canvasRef.current;
+    const video = videoRef.current;
     const context = canvas.getContext('2d');
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
     context.scale(-1, 1);
-    context.drawImage(videoRef.current, -canvas.width, 0);
+    context.drawImage(video, -canvas.width, 0);
     context.scale(-1, 1);
-    setCapturedPhoto(canvas.toDataURL('image/jpeg'));
+
+    const photoDataUrl = canvas.toDataURL('image/jpeg');
+    setCapturedPhoto(photoDataUrl);
+    localStorage.setItem('capturedFaceImage', photoDataUrl);
   };
 
-  const retakePhoto = () => setCapturedPhoto(null);
+  const retakePhoto = () => {
+    setCapturedPhoto(null);
+  };
 
   const getFaceStatusMessage = () => {
-    if (isModelLoading) return 'Loading face detection model...';
+    if (isModelLoading) return "Loading face detection model...";
     if (error) return error;
-    if (!isModelLoaded) return 'Model not loaded';
-    if (detectedFaces.length === 0) return 'No face detected. Ensure you are well-lit and centered.';
-    if (detectedFaces.length > 1) return 'Multiple faces detected. Only your face should be visible.';
-    return isCorrectPosition ? 'Perfect! Face is properly positioned.' : 'Please center your face.';
+    if (!isModelLoaded) return "Model not loaded";
+    if (detectedFaces.length === 0) return "No face detected. Please ensure you are in a well-lit environment and positioned properly.";
+    if (detectedFaces.length > 1) return "Multiple faces detected. Please ensure only your face is visible.";
+    if (detectedFaces.length === 1) {
+      if (!isCorrectPosition) {
+        return "Please center your face in the frame and look straight ahead.";
+      }
+      return "Perfect! Face is properly positioned.";
+    }
+    return "Detecting...";
   };
 
   const getFaceStatusColor = () => {
-    if (isModelLoading || error || !isModelLoaded) return 'text-gray-600';
-    if (detectedFaces.length === 0 || detectedFaces.length > 1) return 'text-red-600';
-    return isCorrectPosition ? 'text-green-600' : 'text-orange-600';
+    if (isModelLoading || error || !isModelLoaded) return "text-gray-600";
+    if (detectedFaces.length === 0 || detectedFaces.length > 1) return "text-red-600";
+    if (detectedFaces.length === 1) {
+      return isCorrectPosition ? "text-green-600" : "text-orange-600";
+    }
+    return "text-gray-600";
   };
 
   return (
     <div className="min-h-screen w-full p-4">
       <div className="max-w-4xl mx-auto p-6">
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">Face Detection</h1>
+        <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
+          Face Detection
+        </h1>
+
+        {isModelLoading && (
+          <div className="mb-4 p-4 bg-blue-100 text-blue-800 rounded-lg flex items-center justify-center">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-800 mr-3"></div>
+            <span>Loading face detection model...</span>
+          </div>
+        )}
 
         {error && (
           <div className="mb-4 p-4 bg-yellow-100 text-yellow-800 rounded-lg flex items-center justify-center">
             <AlertCircle className="w-5 h-5 mr-2" />
             <span>{error}</span>
             {error.includes('Failed to load') && (
-              <button onClick={() => window.location.reload()} className="ml-4 bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-sm">
+              <button
+                onClick={() => window.location.reload()}
+                className="ml-4 bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-sm"
+              >
                 Retry
               </button>
             )}
@@ -223,21 +313,55 @@ const FaceDetectionComponent = ({ onNavigateToAudio }) => {
         )}
 
         <div className="flex flex-col lg:flex-row gap-8 items-center">
-          {/* Left Panel */}
           <div className="lg:w-1/3 space-y-4">
-            <p className={`text-lg font-semibold ${getFaceStatusColor()}`}>
-              {getFaceStatusMessage()}
-            </p>
+            <div className="text-gray-700">
+              <p className={`text-lg font-semibold ${getFaceStatusColor()}`}>
+                {getFaceStatusMessage()}
+              </p>
+            </div>
+
+            <div className="text-sm text-gray-600">
+              <p className="mb-2 font-medium text-blue-600">
+                Position your face in the center of the frame and look straight ahead
+              </p>
+
+              {isModelLoaded && (
+                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                  <p className="text-xs text-gray-500 mb-2">Detection Info:</p>
+                  <p className="text-sm">Faces detected: <span className="font-bold">{detectedFaces.length}</span></p>
+                  {detectedFaces.length > 0 && (
+                    <>
+                      <p className="text-sm">Confidence: <span className="font-bold">{(detectedFaces[0].probability * 100).toFixed(1)}%</span></p>
+                      <p className="text-sm">Properly positioned: <span className={`font-bold ${isCorrectPosition ? 'text-green-600' : 'text-red-600'}`}>{isCorrectPosition ? 'Yes' : 'No'}</span></p>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Center Panel: Camera Feed */}
           <div className="lg:w-1/3 flex flex-col items-center">
             <div className="relative border-4 border-gray-300 rounded-lg overflow-hidden w-full mb-6">
-              <video ref={videoRef} autoPlay playsInline muted className="w-full h-auto" style={{ transform: 'scaleX(-1)' }} />
-              <canvas ref={detectionCanvasRef} className="absolute top-0 left-0 w-full h-full pointer-events-none" style={{ transform: 'scaleX(-1)' }} />
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-auto"
+                style={{ transform: 'scaleX(-1)' }}
+              />
+
+              <canvas
+                ref={detectionCanvasRef}
+                className="absolute top-0 left-0 w-full h-full pointer-events-none"
+                style={{ transform: 'scaleX(-1)' }}
+              />
+
               <div className="absolute top-4 left-4">
                 {isModelLoading ? (
-                  <div className="bg-yellow-500 rounded-full p-2 animate-spin border-2 border-white" />
+                  <div className="bg-yellow-500 rounded-full p-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                  </div>
                 ) : isDetected && isCorrectPosition ? (
                   <div className="bg-green-500 rounded-full p-2">
                     <Check className="w-6 h-6 text-white" />
@@ -248,6 +372,7 @@ const FaceDetectionComponent = ({ onNavigateToAudio }) => {
                   </div>
                 )}
               </div>
+
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-50 text-white px-3 py-1 rounded text-sm">
                 Look straight ahead and center your face
               </div>
@@ -257,38 +382,53 @@ const FaceDetectionComponent = ({ onNavigateToAudio }) => {
 
             {capturedPhoto && (
               <div className="w-full max-w-xs mb-4">
-                <img src={capturedPhoto} alt="Captured face" className="rounded-lg border border-gray-300 w-full" />
+                <div className="border-2 border-gray-300 rounded-lg overflow-hidden bg-gray-100">
+                  <img
+                    src={capturedPhoto}
+                    alt="Captured face"
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+                <p className="text-sm font-medium text-gray-700 text-center mt-2">
+                  Captured Photo
+                </p>
               </div>
             )}
           </div>
 
-          {/* Right Panel: Controls */}
           <div className="lg:w-1/3 flex flex-col items-center space-y-4">
             {capturedPhoto && (
               <button
                 onClick={retakePhoto}
-                className="bg-gray-700 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 w-32"
+                className="bg-gray-700 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 w-32"
               >
-                <RefreshCw className="w-4 h-4" /> Retake
+                <RefreshCw className="w-4 h-4" />
+                Retake
               </button>
             )}
 
             <button
               onClick={capturePhoto}
               disabled={!isDetected || !isCorrectPosition || isModelLoading || capturedPhoto}
-              className={`px-6 py-3 rounded-lg font-medium flex items-center gap-2 w-32 ${
-                isDetected && isCorrectPosition && !isModelLoading && !capturedPhoto
+              className={`px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 w-32 ${isDetected && isCorrectPosition && !isModelLoading && !capturedPhoto
                   ? 'bg-gray-700 hover:bg-gray-800 text-white'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
+                }`}
             >
-              <Camera className="w-4 h-4" /> {capturedPhoto ? 'Captured' : 'Capture'}
+              <Camera className="w-4 h-4" />
+              {capturedPhoto ? 'Captured' : 'Capture'}
             </button>
 
             {capturedPhoto && (
               <button
-                onClick={() => onNavigateToAudio && onNavigateToAudio()}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium w-32"
+                onClick={() => {
+                  // Store the image data before navigating
+                  if (capturedPhoto) {
+                    localStorage.setItem('capturedFaceImage', capturedPhoto);
+                  }
+                  onNavigateToAudio && onNavigateToAudio();
+                }}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 w-32"
               >
                 Next
               </button>

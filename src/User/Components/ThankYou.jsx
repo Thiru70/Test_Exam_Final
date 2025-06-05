@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import imgback from '../../Asstes/Images/img_backgroundcomplete.svg';
-
 import imageScreen from '../../Asstes/Images/img_screen.svg';
 import imgVector from '../../Asstes/Images/img_vector.svg';
 import imageCharecter from '../../Asstes/Images/img_character.svg';
@@ -8,6 +8,87 @@ import imageBubble from '../../Asstes/Images/img_speechbubble.png';
 import imgGif from '../../Asstes/Images/img_gif.gif';
 
 const TestCompletionPage = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const exitFullScreen = () => {
+      const exitMethods = [
+        'exitFullscreen',
+        'webkitExitFullscreen', 
+        'mozCancelFullScreen', 
+        'msExitFullscreen'
+      ];
+      
+  
+      const exitMethod = exitMethods.find(method => document[method]);
+      if (exitMethod) {
+        document[exitMethod]();
+      }
+    };
+
+   
+    exitFullScreen();
+
+    
+    const resetBodyStyles = () => {
+      Object.assign(document.body.style, { 
+        userSelect: '', 
+        webkitUserSelect: '', 
+        mozUserSelect: '', 
+        msUserSelect: '' 
+      });
+    };
+
+    resetBodyStyles();
+
+    
+    const preventBackNavigation = () => {
+      
+      window.history.replaceState(null, '', window.location.href);
+      
+      
+      for(let i = 0; i < 3; i++) {
+        window.history.pushState(null, '', window.location.href);
+      }
+      
+     const handlePopState = (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  
+  // Stay on the same page
+  window.history.pushState(null, '', window.location.href);
+  
+  // Show user message
+  alert('Test completed successfully! Please close this tab or navigate using the menu.');
+};
+
+      const handleBeforeUnload = (event) => {
+       
+        event.preventDefault();
+        event.returnValue = 'Test completed successfully!';
+        return event.returnValue;
+      };
+
+      window.addEventListener('popstate', handlePopState, true);
+      window.addEventListener('beforeunload', handleBeforeUnload);
+
+      // Cleanup function
+      return () => {
+        window.removeEventListener('popstate', handlePopState, true);
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+      };
+    };
+
+    const cleanupBackNavigation = preventBackNavigation();
+
+    // Return cleanup function
+    return () => {
+      if (cleanupBackNavigation) {
+        cleanupBackNavigation();
+      }
+    };
+  }, [navigate]);
+
   return (
     <div className="h-screen flex flex-col bg-white overflow-hidden">
       {/* Header */}
