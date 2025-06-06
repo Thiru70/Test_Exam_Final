@@ -21,6 +21,12 @@ import StudentForm from './Admin/Pages/StudentForm';
 import MyAccount from './Admin/Pages/MyAccount';
 
 import Layout from './Admin/Components/Layout';
+import EmailForm from './Admin/Pages/EmailForm';
+import Result from './Admin/Pages/Result';
+import ResultTable from './Admin/Pages/ResultTable';
+import TestSheetReview from './Admin/Pages/TestSheetReview';
+import Testconfiguration from './Admin/Pages/Testconfiguration';
+import QuestionSet from './Admin/Pages/QuestionSet';
 
 // Wrappers for navigation
 const FaceDetectionWrapper = () => {
@@ -74,10 +80,14 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/myTest" element={<MyTest />} />
           <Route path="/respondents" element={<Respondents />} />
-          
-          <Route path="/StudentForm" element={<StudentForm />} />
+          <Route path="/database" element={<Result />} />
+          <Route path="/StudentForm" element={<StudentForm/>} />
           <Route path="/MyAccount" element={<MyAccount/>} />
-          
+          <Route path="/emailForm" element={<EmailForm />} />
+          <Route path="/resultTable" element={<ResultTable />} />
+          <Route path="/testReview" element={<TestSheetReview />} />
+          <Route path="/testconfiguration" element={<Testconfiguration />} />
+          <Route path="/questionSet" element={<QuestionSet />} />
         </Route>
 
         {/* Fallback Route */}
