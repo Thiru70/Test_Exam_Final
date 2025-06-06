@@ -1,301 +1,241 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Check, Mic, AlertCircle } from 'lucide-react';
+import { Check, AlertTriangle } from 'lucide-react';
 
-const AudioDetectionComponent = ({ onNavigateNext }) => {
-  const [permissionStatus, setPermissionStatus] = useState('pending'); // 'pending', 'granted', 'denied'
-  const [isAudioDetected, setIsAudioDetected] = useState(false);
-  const [waveformData, setWaveformData] = useState([]);
+const AudioDetection = ({ onNavigateNext }) => {
+  const [isDetecting, setIsDetecting] = useState(false);
+  const [audioDetected, setAudioDetected] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
+  const [timeRemaining, setTimeRemaining] = useState(10);
+  const [noiseTooLoud, setNoiseTooLoud] = useState(false);
+  
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);
   const streamRef = useRef(null);
   const animationRef = useRef(null);
+  const timerRef = useRef(null);
+  const noiseHistoryRef = useRef([]);
 
-  // Generate waveform data based on actual audio or random data
-  const generateWaveform = (level = 0) => {
-    if (level > 0) {
-      // Generate based on actual audio level
-      const intensity = Math.min(level * 2, 1);
-      return Array.from({ length: 40 }, () => ({
-        up: (Math.random() * 25 + 5) * intensity + 3,
-        down: (Math.random() * 25 + 5) * intensity + 3
-      }));
-    } else {
-      // Generate static/low activity waveform
-      return Array.from({ length: 40 }, () => ({
-        up: Math.random() * 8 + 2,
-        down: Math.random() * 8 + 2
-      }));
-    }
-  };
+  const NOISE_THRESHOLD = 0.3; // Threshold for "too loud" noise
 
-  // Request microphone permission and setup audio analysis
-  const requestAudioPermission = async () => {
+  const startAudioDetection = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
-          echoCancellation: false,
+          echoCancellation: true,
           noiseSuppression: false,
-          autoGainControl: false
+          autoGainControl: false,
+          sampleRate: 44100
         } 
       });
       
       streamRef.current = stream;
-      setPermissionStatus('granted');
       
-      // Setup audio analysis
       const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       const analyser = audioContext.createAnalyser();
       const microphone = audioContext.createMediaStreamSource(stream);
       
       analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.8;
       microphone.connect(analyser);
       
       audioContextRef.current = audioContext;
       analyserRef.current = analyser;
       
-      // Start audio level monitoring
-      monitorAudioLevel();
+      setIsDetecting(true);
+      monitorAudio();
+      startTimer();
       
     } catch (error) {
       console.error('Microphone access denied:', error);
-      setPermissionStatus('denied');
     }
   };
 
-  // Monitor audio levels
-  const monitorAudioLevel = () => {
+  const startTimer = () => {
+    timerRef.current = setInterval(() => {
+      setTimeRemaining(prev => {
+        if (prev <= 1) {
+          completeDetection();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const completeDetection = () => {
+    setAudioDetected(true);
+    setIsDetecting(false);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    stopMonitoring();
+  };
+
+  const monitorAudio = () => {
     const analyser = analyserRef.current;
     if (!analyser) return;
 
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
-    const checkAudioLevel = () => {
+    const detectAudio = () => {
+      if (!analyser || !isDetecting) return;
+      
       analyser.getByteFrequencyData(dataArray);
       
-      // Calculate average volume
-      const sum = dataArray.reduce((a, b) => a + b, 0);
-      const average = sum / bufferLength;
-      const normalizedLevel = average / 255;
+      const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
+      const normalizedLevel = average / 128;
       
       setAudioLevel(normalizedLevel);
       
-      // Detect meaningful audio (threshold for detection)
-      if (normalizedLevel > 0.02 && !isAudioDetected) {
-        setIsAudioDetected(true);
+      // Add to noise history for better detection
+      noiseHistoryRef.current.push(normalizedLevel);
+      if (noiseHistoryRef.current.length > 10) {
+        noiseHistoryRef.current.shift();
       }
       
-      animationRef.current = requestAnimationFrame(checkAudioLevel);
+      // Check if noise is consistently too loud
+      const avgNoise = noiseHistoryRef.current.reduce((sum, level) => sum + level, 0) / noiseHistoryRef.current.length;
+      setNoiseTooLoud(avgNoise > NOISE_THRESHOLD);
+      
+      animationRef.current = requestAnimationFrame(detectAudio);
     };
     
-    checkAudioLevel();
+    detectAudio();
   };
 
-  // Initialize waveform and handle permission request
-  useEffect(() => {
-    setWaveformData(generateWaveform());
-    
-    // Auto-request permission after component mounts
-    const timer = setTimeout(() => {
-      if (permissionStatus === 'pending') {
-        requestAudioPermission();
-      }
-    }, 1000);
+  const stopMonitoring = () => {
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+    }
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+  };
 
+  const generateWaveformBars = () => {
+    const bars = [];
+    const numBars = 40;
+    
+    for (let i = 0; i < numBars; i++) {
+      const isActive = isDetecting;
+      const height = isActive ? 
+        Math.max(0.3, Math.random() * audioLevel + 0.2) : 
+        0.5;
+      
+      bars.push(
+        <div
+          key={i}
+          className={`bg-gray-800 transition-all duration-150 ${
+            isActive ? 'animate-pulse' : ''
+          }`}
+          style={{
+            width: '3px',
+            height: `${height * 40}px`,
+            minHeight: '8px',
+            maxHeight: '40px'
+          }}
+        />
+      );
+    }
+    return bars;
+  };
+
+  useEffect(() => {
+    startAudioDetection();
+    
     return () => {
-      clearTimeout(timer);
-      // Cleanup audio resources
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
-      }
+      stopMonitoring();
     };
   }, []);
 
-  // Update waveform based on audio level
-  useEffect(() => {
-    let waveformInterval;
-    
-    if (permissionStatus === 'granted') {
-      waveformInterval = setInterval(() => {
-        setWaveformData(prev => {
-          const newData = generateWaveform(audioLevel);
-          return [...prev.slice(1), ...newData.slice(0, 1)];
-        });
-      }, 100);
-    }
-
-    return () => {
-      if (waveformInterval) clearInterval(waveformInterval);
-    };
-  }, [permissionStatus, audioLevel]);
-
-  const getStatusMessage = () => {
-    switch (permissionStatus) {
-      case 'pending':
-        return 'Requesting microphone access...';
-      case 'denied':
-        return 'Microphone access denied. Please enable microphone permissions.';
-      case 'granted':
-        if (isAudioDetected) {
-          return 'Audio detected successfully!';
-        }
-        return 'Microphone ready. Please speak or make some sound...';
-      default:
-        return 'Initializing...';
-    }
-  };
-
-  const getStatusIcon = () => {
-    switch (permissionStatus) {
-      case 'pending':
-        return <Mic className="w-6 h-6 text-blue-500 animate-pulse" />;
-      case 'denied':
-        return <AlertCircle className="w-6 h-6 text-red-500" />;
-      case 'granted':
-        if (isAudioDetected) {
-          return (
-            <div className="bg-green-500 rounded-full p-3 shadow-lg">
-              <Check className="w-6 h-6 text-white" />
-            </div>
-          );
-        }
-        return <Mic className="w-6 h-6 text-green-500" />;
-      default:
-        return null;
-    }
-  };
-
   return (
-    <div className="min-h-screen w-full p-4 flex items-center justify-center">
-      <div className="max-w-4xl mx-auto text-center">
-        {/* Header */}
-        <div className="mb-16">
-          <h1 className="text-3xl font-bold text-gray-800">
-            Audio detection
-          </h1>
+    <div className="min-h-screen w-full bg-white flex flex-col items-center justify-center relative">
+      
+      {/* Noise Warning - Top Right */}
+      {noiseTooLoud && isDetecting && (
+        <div className="fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 z-10">
+          <AlertTriangle className="w-5 h-5" />
+          <span className="font-medium">Background noise is too loud!</span>
         </div>
+      )}
 
-        {/* Permission prompt */}
-        {permissionStatus === 'pending' && (
-          <div className="mb-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-blue-800">
-              This app needs access to your microphone to detect audio input.
-            </p>
-            <button
-              onClick={requestAudioPermission}
-              className="mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-medium transition-colors"
-            >
-              Allow Microphone Access
-            </button>
-          </div>
-        )}
+      {/* Main Content */}
+      <div className="text-center">
+        
+        {/* Title */}
+        <h1 className="text-3xl font-bold text-gray-800 mb-16">
+          Audio detection
+        </h1>
 
-        {/* Error message for denied permission */}
-        {permissionStatus === 'denied' && (
-          <div className="mb-8 p-4 bg-red-50 rounded-lg border border-red-200">
-            <p className="text-red-800 mb-2">
-              Microphone access is required for audio detection.
-            </p>
-            <button
-              onClick={requestAudioPermission}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-medium transition-colors"
-            >
-              Try Again
-            </button>
-          </div>
-        )}
-
-        {/* Waveform visualization */}
-        <div className="flex items-center justify-center mb-8" style={{ height: '120px' }}>
-          <div className="flex items-center gap-1 overflow-hidden" style={{ width: '400px' }}>
-            {waveformData.map((heights, index) => (
-              <div
-                key={`${index}-${permissionStatus}-${isAudioDetected}`}
-                className="flex flex-col items-center"
-                style={{ width: '6px' }}
-              >
-                <div
-                  className={`bg-gray-800 ${permissionStatus === 'granted' && audioLevel > 0.01 ? 'animate-pulse' : ''}`}
-                  style={{
-                    height: `${heights.up}px`,
-                    width: '6px',
-                    borderRadius: '3px 3px 0 0',
-                    transition: permissionStatus === 'granted' ? 'none' : 'height 0.3s ease-in-out'
-                  }}
-                />
-                <div
-                  className={`bg-gray-800 ${permissionStatus === 'granted' && audioLevel > 0.01 ? 'animate-pulse' : ''}`}
-                  style={{
-                    height: `${heights.down}px`,
-                    width: '6px',
-                    borderRadius: '0 0 3px 3px',
-                    transition: permissionStatus === 'granted' ? 'none' : 'height 0.3s ease-in-out'
-                  }}
-                />
+        {/* Waveform Visualization */}
+        <div className="mb-12 flex items-center justify-center space-x-1 h-16">
+          {audioDetected ? (
+            <div className="flex items-center justify-center space-x-1">
+              {generateWaveformBars()}
+              <div className="ml-6 p-3 bg-green-500 rounded-full">
+                <Check className="w-8 h-8 text-white" />
               </div>
-            ))}
-          </div>
-          
-          {/* Status icon */}
-          <div className="ml-8">
-            {getStatusIcon()}
-          </div>
-        </div>
-
-        {/* Status message */}
-        <div className="mb-16" style={{ height: '60px' }}>
-          <p className={`text-xl font-medium ${
-            permissionStatus === 'denied' ? 'text-red-600' : 
-            isAudioDetected ? 'text-gray-800' : 'text-gray-600'
-          }`}>
-            {getStatusMessage()}
-          </p>
-          
-          {/* Audio level indicator */}
-          {permissionStatus === 'granted' && !isAudioDetected && (
-            <div className="mt-4 flex items-center justify-center">
-              <div className="text-sm text-gray-500 mr-2">Audio Level:</div>
-              <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-green-500 transition-all duration-100"
-                  style={{ width: `${Math.min(audioLevel * 200, 100)}%` }}
-                />
-              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center space-x-1">
+              {generateWaveformBars()}
             </div>
           )}
         </div>
 
-        {/* Next button */}
-        {isAudioDetected && (
-          <div className="flex justify-end animate-fadeIn">
-            <button
-              onClick={() => onNavigateNext && onNavigateNext()}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-full font-medium transition-colors duration-200 shadow-lg"
-            >
-              Next
-            </button>
+        {/* Status Message */}
+        <div className="mb-8">
+          {audioDetected ? (
+            <p className="text-gray-700 text-xl font-medium">
+              Audio detected successfully!
+            </p>
+          ) : isDetecting ? (
+            <div className="space-y-2">
+              <p className="text-gray-600 text-lg">
+                Detecting background noise...
+              </p>
+              <p className="text-gray-500">
+                {timeRemaining} seconds remaining
+              </p>
+            </div>
+          ) : (
+            <p className="text-gray-600 text-lg">
+              Initializing audio detection...
+            </p>
+          )}
+        </div>
+
+        {/* Next Button */}
+        {audioDetected && (
+          <button 
+            onClick={onNavigateNext}
+            className="bg-cyan-500 hover:bg-cyan-600 text-white px-10 py-4 rounded-full text-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
+          >
+            Next
+          </button>
+        )}
+
+        {/* Progress Indicator */}
+        {isDetecting && (
+          <div className="mt-8 w-80 mx-auto">
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-blue-500 h-2 rounded-full transition-all duration-1000"
+                style={{ width: `${((10 - timeRemaining) / 10) * 100}%` }}
+              />
+            </div>
           </div>
         )}
       </div>
-      
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.5s ease-out forwards;
-        }
-      `}</style>
     </div>
   );
 };
 
-export default AudioDetectionComponent;
+export default AudioDetection;

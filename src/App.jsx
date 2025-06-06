@@ -21,18 +21,22 @@ import StudentForm from './Admin/Pages/StudentForm';
 import MyAccount from './Admin/Pages/MyAccount';
 
 import Layout from './Admin/Components/Layout';
+import MonacoEditor from './User/Components/MonacoCodeEditer';
+import codeEditor from './User/Components/CodeEditor';
+import ThankYou from './User/Components/ThankYou';
+
 import EmailForm from './Admin/Pages/EmailForm';
 import Result from './Admin/Pages/Result';
 import ResultTable from './Admin/Pages/ResultTable';
 import TestSheetReview from './Admin/Pages/TestSheetReview';
 import Testconfiguration from './Admin/Pages/Testconfiguration';
 import QuestionSet from './Admin/Pages/QuestionSet';
+// import FaceRecognition from './User/Components/FaceRecognition';
 
-// Wrappers for navigation
 const FaceDetectionWrapper = () => {
   const navigate = useNavigate();
   const handleNavigateToAudio = () => navigate('/audio-detection');
-  return <FaceDetectionComponent onNavigateToAudio={handleNavigateToAudio} />;
+  return <FaceDetectionComponent  onNavigateToAudio={handleNavigateToAudio} />;
 };
 
 const AudioDetectionWrapper = () => {
@@ -43,15 +47,21 @@ const AudioDetectionWrapper = () => {
 
 const AptitudeTestWrapper = () => {
   const navigate = useNavigate();
-  const handleNavigateToCoding = () => navigate('/Coding-Section');
+  const handleNavigateToCoding = () => navigate('/ThankYou');
   return <AptitudeTest onNavigateToCoding={handleNavigateToCoding} />;
 };
 
 const CodingSectionWrapper = () => {
   const navigate = useNavigate();
-  const handleNavigateToInterview = () => navigate('/interview-invitation');
+  const handleNavigateToInterview = () => navigate('/ThankYou');
   return <CodingSection onNavigateToInterview={handleNavigateToInterview} />;
 };
+const  InterviewInvitationWrapper = ()=>{
+  const navigate = useNavigate();
+  const handleNavigateToThankyou = () => navigate('/ThankYou');
+
+return <InterviewInvitation onNavigateToThankyou={handleNavigateToThankyou} />;
+}
 
 function App() {
   return (
@@ -68,11 +78,12 @@ function App() {
         {/* User Routes */}
         <Route path="/student-dashboard" element={<StudentDashboard />} />
         <Route path="/face-detection" element={<FaceDetectionWrapper />} />
+         {/* <Route path="/face-recogition" element={<FaceRecognition />} /> */}
         <Route path="/audio-detection" element={<AudioDetectionWrapper />} />
         <Route path="/Instructions" element={<Instructions />} />
         <Route path="/Aptitude-Test" element={<AptitudeTestWrapper />} />
         <Route path="/Coding-Section" element={<CodingSectionWrapper />} />
-        <Route path="/interview-invitation" element={<InterviewInvitation />} />
+        <Route path="/interview-invitation" element={<InterviewInvitationWrapper />} />
         <Route path="/face-detect" element={<FaceDetection />} />
         <Route path="/selection-process" element={<SelectionProcessStages />} />
 
@@ -91,7 +102,9 @@ function App() {
         </Route>
 
         {/* Fallback Route */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/Monaco-editor" element={<MonacoEditor />} />
+        <Route path="/code-Editor" element={<codeEditor />} />
+        <Route path="/ThankYou" element={<ThankYou />} />
       </Routes>
     </Router>
   );

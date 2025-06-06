@@ -1,17 +1,32 @@
-import React from 'react';
-import { AlertTriangle, Mic } from 'lucide-react';
+import React, { useState } from 'react';
+import { AlertTriangle, Mic, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Instructions = () => {
+  const [checkedItems, setCheckedItems] = useState({});
   const navigate = useNavigate();
 
-  // Blue diamond icon component
-  const BlueDiamond = () => (
-    <div className="w-3 h-3 bg-blue-500 transform rotate-45"></div>
-  );
+  // Handle checkbox changes
+  const handleCheckboxChange = (index) => {
+    setCheckedItems(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
+
+ 
+  const allRequiredChecked = () => {
+    const requiredIndices = [1, 2, 3, 4, 5, 6, 7, 8]; // All instruction items except header (0) and warning (9)
+    return requiredIndices.every(index => checkedItems[index]);
+  };
 
   const handleStartExam = () => {
-    navigate('/aptitude-test');
+    if (allRequiredChecked()) {
+   
+      console.log('All instructions checked - navigating to aptitude test');
+     
+      navigate('/aptitude-test');
+    }
   };
 
   const instructions = [
@@ -21,40 +36,41 @@ const Instructions = () => {
       isHeader: true
     },
     {
-      icon: <BlueDiamond />,
-      text: "Check Your System: Ensure your device (PC/laptop/tablet) is fully charged and connected to a stable internet connection."
+      text: "Check Your System: Ensure your device (PC/laptop/tablet) is fully charged and connected to a stable internet connection.",
+      hasCheckbox: true
     },
     {
-      icon: <BlueDiamond />,
-      text: "Browser Compatibility: Use the recommended browser (e.g., Chrome, Firefox) and disable unnecessary extensions."
+      text: "Browser Compatibility: Use the recommended browser (e.g., Chrome, Firefox) and disable unnecessary extensions.",
+      hasCheckbox: true
     },
     {
-      icon: <BlueDiamond />,
-      text: "Quiet Environment: Choose a distraction-free, well-lit space for the test."
+      text: "Quiet Environment: Choose a distraction-free, well-lit space for the test.",
+      hasCheckbox: true
     },
     {
-      icon: <BlueDiamond />,
-      text: "Webcam & Microphone: If required, allow access to your webcam and microphone for monitoring."
+      text: "Webcam & Microphone: If required, allow access to your webcam and microphone for monitoring.",
+      hasCheckbox: true
     },
     {
-      icon: <BlueDiamond />,
-      text: "Login on Time: Join at least 10-15 minutes before the test starts to avoid last-minute issues."
+      text: "Login on Time: Join at least 10-15 minutes before the test starts to avoid last-minute issues.",
+      hasCheckbox: true
     },
     {
-      icon: <BlueDiamond />,
-      text: "Read Instructions: Carefully review all guidelines before starting the test."
+      text: "Read Instructions: Carefully review all guidelines before starting the test.",
+      hasCheckbox: true
     },
     {
-      icon: <BlueDiamond />,
-      text: "No External Help: Do not use unauthorized materials, apps, or communication during the exam."
+      text: "No External Help: Do not use unauthorized materials, apps, or communication during the exam.",
+      hasCheckbox: true
     },
     {
-      icon: <BlueDiamond />,
-      text: "Submission: Ensure you submit your answers before the timer expires."
+      text: "Submission: Ensure you submit your answers before the timer expires.",
+      hasCheckbox: true
     },
     {
       icon: <AlertTriangle className="w-5 h-5 text-red-600" />,
-      text: "Any violations of the rules may result in disqualification."
+      text: "Any violations of the rules may result in disqualification.",
+      isWarning: true
     }
   ];
 
@@ -62,8 +78,8 @@ const Instructions = () => {
     <div className="min-h-screen bg-white-50 py-8 px-4 w-full" style={{ fontFamily: 'Poppins, sans-serif' }}>
       <div className="w-full max-w-none mx-auto">
         {/* Header */}
-        <div className=" w-full">
-          <h1 className="text-3xl font-bold text-gray-800 mb-6" >
+        <div className="w-full">
+          <h1 className="text-3xl font-bold text-gray-800 mb-6">
             Exam Portal
           </h1>
           
@@ -82,7 +98,22 @@ const Instructions = () => {
             {instructions.map((instruction, index) => (
               <div key={index} className="flex items-start space-x-3">
                 <div className="flex-shrink-0 mt-0.5">
-                  {instruction.icon}
+                  {instruction.isHeader && instruction.icon}
+                  {instruction.isWarning && instruction.icon}
+                  {instruction.hasCheckbox && (
+                    <div
+                      className={`w-5 h-5 border-2 rounded cursor-pointer flex items-center justify-center transition-all duration-200 ${
+                        checkedItems[index]
+                          ? 'bg-green-500 border-green-500'
+                          : 'border-gray-300 hover:border-blue-400'
+                      }`}
+                      onClick={() => handleCheckboxChange(index)}
+                    >
+                      {checkedItems[index] && (
+                        <Check className="w-3 h-3 text-white" />
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="flex-1">
                   {instruction.isHeader ? (
@@ -96,13 +127,19 @@ const Instructions = () => {
                       {instruction.title}
                     </h2>
                   ) : (
-                    <p className="text-gray-700 leading-relaxed" style={{ 
-                      fontFamily: 'Poppins, sans-serif',
-                      fontWeight: 500,
-                      fontSize: '20px',
-                      lineHeight: '100%',
-                      letterSpacing: '0%'
-                    }}>
+                    <p 
+                      className={`leading-relaxed ${
+                        instruction.hasCheckbox ? 'text-gray-700 cursor-pointer' : 'text-gray-700'
+                      }`}
+                      style={{ 
+                        fontFamily: 'Poppins, sans-serif',
+                        fontWeight: 500,
+                        fontSize: '20px',
+                        lineHeight: '100%',
+                        letterSpacing: '0%'
+                      }}
+                      onClick={instruction.hasCheckbox ? () => handleCheckboxChange(index) : undefined}
+                    >
                       {instruction.text}
                     </p>
                   )}
@@ -128,7 +165,12 @@ const Instructions = () => {
         <div className="fixed bottom-8 right-8">
           <button
             onClick={handleStartExam}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-12 py-4 rounded-full text-lg shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl"
+            disabled={!allRequiredChecked()}
+            className={`font-semibold px-12 py-4 rounded-full text-lg shadow-lg transform transition-all duration-200 ${
+              allRequiredChecked()
+                ? 'bg-blue-500 hover:bg-blue-600 text-white hover:scale-105 hover:shadow-xl cursor-pointer'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
             style={{ 
               fontFamily: 'Poppins, sans-serif',
               fontWeight: 500,

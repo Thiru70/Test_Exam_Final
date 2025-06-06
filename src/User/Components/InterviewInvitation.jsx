@@ -22,7 +22,181 @@ import {
   RefreshCw
 } from 'lucide-react';
 
-const InterviewInterface = (onNavigateToThankyou) => {
+// Monaco Editor component (simulated since we can't import from npm in artifacts)
+const MonacoEditor = ({ value, onChange, language = 'html', theme = 'vs-dark', height = '100%' }) => {
+  const editorRef = useRef(null);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    // Simulate Monaco Editor with enhanced textarea
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Create editor container
+    const editor = document.createElement('div');
+    editor.className = 'monaco-editor-container';
+    editor.style.cssText = `
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 14px;
+      overflow: hidden;
+    `;
+
+    // Line numbers
+    const lineNumbers = document.createElement('div');
+    lineNumbers.className = 'line-numbers';
+    lineNumbers.style.cssText = `
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 50px;
+      height: 100%;
+      background: #252526;
+      color: #858585;
+      font-size: 13px;
+      line-height: 18px;
+      padding: 10px 0;
+      text-align: center;
+      user-select: none;
+      overflow: hidden;
+      z-index: 1;
+    `;
+
+    // Code textarea
+    const textarea = document.createElement('textarea');
+    textarea.value = value;
+    textarea.style.cssText = `
+      position: absolute;
+      left: 50px;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      background: transparent;
+      color: #d4d4d4;
+      border: none;
+      outline: none;
+      resize: none;
+      font-family: inherit;
+      font-size: inherit;
+      line-height: 18px;
+      padding: 10px;
+      tab-size: 2;
+      white-space: pre;
+      overflow-wrap: normal;
+      overflow-x: auto;
+    `;
+
+    // Syntax highlighting overlay
+    const syntaxOverlay = document.createElement('pre');
+    syntaxOverlay.style.cssText = `
+      position: absolute;
+      left: 50px;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      margin: 0;
+      padding: 10px;
+      pointer-events: none;
+      color: transparent;
+      background: transparent;
+      font-family: inherit;
+      font-size: inherit;
+      line-height: 18px;
+      white-space: pre;
+      overflow: hidden;
+      z-index: 0;
+    `;
+
+    // Update line numbers
+    const updateLineNumbers = () => {
+      const lines = textarea.value.split('\n').length;
+      lineNumbers.innerHTML = Array.from({ length: lines }, (_, i) => 
+        `<div style="height: 18px;">${i + 1}</div>`
+      ).join('');
+    };
+
+    // Basic syntax highlighting for HTML
+    const highlightSyntax = (code) => {
+      return code
+        .replace(/(&lt;!DOCTYPE[^&]*&gt;)/g, '<span style="color: #569cd6;">$1</span>')
+        .replace(/(&lt;\/?)(\w+)/g, '<span style="color: #569cd6;">$1</span><span style="color: #4ec9b0;">$2</span>')
+        .replace(/(\w+)(=)/g, '<span style="color: #92c5f8;">$1</span><span style="color: #d4d4d4;">$2</span>')
+        .replace(/(["'][^"']*["'])/g, '<span style="color: #ce9178;">$1</span>')
+        .replace(/(\/\*.*?\*\/)/gs, '<span style="color: #6a9955;">$1</span>')
+        .replace(/(\/\/.*$)/gm, '<span style="color: #6a9955;">$1</span>');
+    };
+
+    // Update syntax highlighting
+    const updateSyntaxHighlighting = () => {
+      const escapedCode = textarea.value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      syntaxOverlay.innerHTML = highlightSyntax(escapedCode);
+    };
+
+    // Handle input
+    textarea.addEventListener('input', (e) => {
+      updateLineNumbers();
+      updateSyntaxHighlighting();
+      onChange(e.target.value);
+    });
+
+    // Handle scroll sync
+    textarea.addEventListener('scroll', () => {
+      syntaxOverlay.scrollTop = textarea.scrollTop;
+      syntaxOverlay.scrollLeft = textarea.scrollLeft;
+      lineNumbers.scrollTop = textarea.scrollTop;
+    });
+
+    // Handle tab key
+    textarea.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        textarea.value = textarea.value.substring(0, start) + '  ' + textarea.value.substring(end);
+        textarea.selectionStart = textarea.selectionEnd = start + 2;
+        updateLineNumbers();
+        updateSyntaxHighlighting();
+        onChange(textarea.value);
+      }
+    });
+
+    // Assemble editor
+    editor.appendChild(syntaxOverlay);
+    editor.appendChild(lineNumbers);
+    editor.appendChild(textarea);
+    container.appendChild(editor);
+
+    // Initial updates
+    updateLineNumbers();
+    updateSyntaxHighlighting();
+
+    editorRef.current = { textarea, updateLineNumbers, updateSyntaxHighlighting };
+
+    return () => {
+      container.innerHTML = '';
+    };
+  }, []);
+
+  // Update value when prop changes
+  useEffect(() => {
+    if (editorRef.current && editorRef.current.textarea.value !== value) {
+      editorRef.current.textarea.value = value;
+      editorRef.current.updateLineNumbers();
+      editorRef.current.updateSyntaxHighlighting();
+    }
+  }, [value]);
+
+  return <div ref={containerRef} style={{ height, width: '100%' }} />;
+};
+
+const InterviewInvitation = ({ onNavigateToThankyou }) => {
   // State management
   const [activeTab, setActiveTab] = useState('Interview');
   const [isAudioOn, setIsAudioOn] = useState(true);
@@ -231,6 +405,19 @@ const InterviewInterface = (onNavigateToThankyou) => {
       };
       setChatMessages([...chatMessages, message]);
       setNewMessage('');
+    }
+  };
+
+  // Handle end interview
+  const handleEndInterview = () => {
+    // Stop all video/audio streams
+    if (studentStreamRef.current) {
+      studentStreamRef.current.getTracks().forEach(track => track.stop());
+    }
+    
+    // Call the navigation function
+    if (onNavigateToThankyou) {
+      onNavigateToThankyou();
     }
   };
 
@@ -564,27 +751,15 @@ const InterviewInterface = (onNavigateToThankyou) => {
 
           {/* Code Editor and Output Split */}
           <div className="flex-1 flex">
-            {/* Code Editor */}
-          
-           {/* Code Editor */}
+            {/* Monaco Code Editor */}
             <div className="w-1/2 flex flex-col border-r">
-              <div className="flex-1 relative overflow-hidden">
-                {/* Line numbers */}
-                <div className="absolute left-0 top-0 w-8 h-full bg-gray-800 text-gray-400 text-xs py-4 font-mono z-10 overflow-hidden">
-                  <div className="leading-5">
-                    {code.split('\n').map((_, index) => (
-                      <div key={index} className="px-1">
-                        {index + 1}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                <textarea
+              <div className="flex-1">
+                <MonacoEditor
                   value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  className="w-full h-full pl-10 p-4 font-mono text-sm bg-gray-900 text-white resize-none focus:outline-none overflow-auto"
-                  style={{ lineHeight: '1.25rem' }}
+                  onChange={setCode}
+                  language="html"
+                  theme="vs-dark"
+                  height="100%"
                 />
               </div>
             </div>
@@ -644,4 +819,4 @@ const InterviewInterface = (onNavigateToThankyou) => {
   );
 };
 
-export default InterviewInterface;
+export default InterviewInvitation;

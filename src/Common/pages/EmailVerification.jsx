@@ -16,7 +16,7 @@ const EmailVerification = () => {
 
     try {
       // Call your backend API to send OTP email
-      const response = await fetch('/send-otp', {  // Adjust the URL if needed
+      const response = await fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/api/verify-email', {  // Adjust the URL if needed
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
