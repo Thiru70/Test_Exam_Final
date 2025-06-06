@@ -17,6 +17,9 @@ import FaceDetection from './User/Components/FaceDetection';
 import { SelectionProcessStages } from './User/Components/SelectionProcessStages';
 import MyTest from './Admin/Pages/MyTest';
 import Respondents from './Admin/Pages/Respondents';
+import StudentForm from './Admin/Pages/StudentForm';
+import MyAccount from './Admin/Pages/MyAccount';
+
 import Layout from './Admin/Components/Layout';
 import MonacoEditor from './User/Components/MonacoCodeEditer';
 import codeEditor from './User/Components/CodeEditor';
@@ -94,6 +97,8 @@ function App() {
           <Route path="/myTest" element={<MyTest />} />
           <Route path="/respondents" element={<Respondents />} />
           <Route path="/database" element={<Result />} />
+          <Route path="/StudentForm" element={<StudentForm/>} />
+          <Route path="/MyAccount" element={<MyAccount/>} />
           <Route path="/emailForm" element={<EmailForm />} />
           <Route path="/resultTable" element={<ResultTable />} />
           <Route path="/testReview" element={<TestSheetReview />} />
