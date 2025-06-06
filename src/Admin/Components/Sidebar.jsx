@@ -9,8 +9,9 @@ const Sidebar = () => {
 
   const menu = [
     { path: "/myTest", label: "My test", icon: "mdi:home" },
+    { path: "/candidateList", label: "Candidate list", icon: "mdi:user" },
     { path: "/respondents", label: "Respondents", icon: "mdi:account-group-outline" },
-    { path: "/database", label: "Result database account", icon: "mdi:database" },
+    { path: "/database", label: "Results", icon: "mdi:database" },
     { path: "/student-form", label: "Student Form", icon: "mdi:form-select" },
     { path: "/account", label: "My Account", icon: "mdi:account-circle-outline" },
   ];
