@@ -17,7 +17,7 @@ const FormPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f8ff] p-6 font-sans">
+    <div className="min-h-screen t-sans">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-lg font-semibold">My tests</h1>
@@ -31,7 +31,7 @@ const FormPage = () => {
             form responses
           </button>
           <div className="flex gap-3 text-xl">
-            <button title="Edit">✏️</button>
+            <button title="Edit"></button>
             <button title="Save">💾</button>
             <button title="Share">🔗</button>
           </div>
@@ -40,7 +40,7 @@ const FormPage = () => {
 
       {/* Upload Section */}
       <div className="mb-4">
-        <label className="block text-sm mb-1">Document to add (resume, photo, etc)</label>
+        <label className="block text-sm mb-1"></label>
         <div className="flex items-center gap-4">
           {/* Hidden Input */}
           <input
@@ -50,13 +50,7 @@ const FormPage = () => {
             style={{ display: "none" }}
           />
 
-          {/* Custom Browse Button */}
-          <button
-            className="bg-blue-500 text-white px-4 py-1 rounded text-sm"
-            onClick={handleBrowseClick}
-          >
-            Browse File
-          </button>
+         
 
           <button className="bg-green-500 text-white px-4 py-1 rounded text-sm">
             Add more
@@ -65,7 +59,7 @@ const FormPage = () => {
       </div>
 
       {/* Personal Details */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
+      <div className="grid grid-cols-2 gap-5 mb-4">
         <input type="text" placeholder="First Name" className="border-b border-black outline-none" />
         <input type="text" placeholder="Last name" className="border-b border-black outline-none" />
         <input type="text" placeholder="Gender" className="border-b border-black outline-none" />
