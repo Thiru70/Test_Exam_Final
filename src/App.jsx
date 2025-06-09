@@ -35,6 +35,8 @@ import StudentTable from './Admin/Pages/StudentTable';
 import StudentEmailForm from './Admin/Pages/StudentEmailForm';
 import Emailsuccess from './Admin/Pages/Emailsuccess';
 import CandidateList from './Admin/Pages/CandidateList';
+import MailDashboard from './Admin/Pages/MailDashboard';
+
 
 // import FaceRecognition from './User/Components/FaceRecognition';
 
@@ -108,6 +110,7 @@ function App() {
           <Route path="/studentEmail-form" element={<StudentEmailForm />} />
           <Route path="/Emailsuccess" element={<Emailsuccess />} />
           <Route path="/candidateList" element={<CandidateList />} />
+          <Route path="/MailDashborad" element={<MailDashboard />} />
           
 
         </Route>
