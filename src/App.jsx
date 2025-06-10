@@ -6,6 +6,7 @@ import LoginPage from './Common/pages/LoginPage';
 import EmailVerification from './Common/pages/EmailVerification';
 import OtpVerification from './Common/pages/OtpVerification';
 import InfoForm from './Common/pages/InfoForm';
+
 import StudentDashboard from './User/Components/StudentDashboard';
 import FaceDetectionComponent from './User/Components/FaceDetection';
 import AudioDetectionComponent from './User/Components/AudioDetection';
@@ -82,6 +83,7 @@ function App() {
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/otp-verification" element={<OtpVerification />} />
         <Route path="/info-form" element={<InfoForm />} />
+        
 
         {/* User Routes */}
         <Route path="/student-dashboard" element={<StudentDashboard />} />
@@ -111,7 +113,7 @@ function App() {
           <Route path="/studentEmail-form" element={<StudentEmailForm />} />
           <Route path="/Emailsuccess" element={<Emailsuccess />} />
           <Route path="/candidateList" element={<CandidateList />} />
-          <Route path="/MailDashborad" element={<MailDashboard />} />
+          
           <Route path="/SetCriteria" element={<SetCriteria />} />
 
         </Route>
