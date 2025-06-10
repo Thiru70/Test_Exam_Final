@@ -28,6 +28,8 @@ import ResultTable from './Admin/Pages/ResultTable';
 import TestSheetReview from './Admin/Pages/TestSheetReview';
 import Testconfiguration from './Admin/Pages/Testconfiguration';
 import QuestionSet from './Admin/Pages/QuestionSet';
+import InfromationForm from './Admin/Pages/Information';
+import SetEligibilityCriteria from './User/Components/EligibilityCriteria';
 // import FaceRecognition from './User/Components/FaceRecognition';
 
 const FaceDetectionWrapper = () => {
@@ -68,6 +70,7 @@ function App() {
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/information" element={<InfromationForm />} />
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/otp-verification" element={<OtpVerification />} />
         <Route path="/info-form" element={<InfoForm />} />
@@ -87,6 +90,7 @@ function App() {
         {/* Admin Routes (wrapped in layout) */}
         <Route element={<Layout />}>
           <Route path="/myTest" element={<MyTest />} />
+          <Route path="/setCriteria" element={<SetEligibilityCriteria />} />
           <Route path="/respondents" element={<Respondents />} />
           <Route path="/database" element={<Result />} />
           <Route path="/emailForm" element={<EmailForm />} />
