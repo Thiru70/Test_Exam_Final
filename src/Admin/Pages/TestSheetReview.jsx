@@ -8,8 +8,13 @@ import { FaCheckCircle } from "react-icons/fa";
 import { IoMdCloseCircle } from "react-icons/io";
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
+import { FaArrowAltCircleLeft } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
-const testData = {
+
+const TestSheetReview = () => {
+  const navigate = useNavigate();
+  const testData = {
   testName: 'Aptitude test',
   respondent: 'Wade Warren',
   status: 'Test Passed',
@@ -32,11 +37,10 @@ const isCorrect = (res) => {
   return got === total;
 };
 
-const TestSheetReview = () => {
   return (
     <div className="p-6 space-y-6">
       
-        <h2 className="text-xl font-semibold">Test sheet review</h2>
+        <h2 className="text-xl font-semibold flex gap-2"><FaArrowAltCircleLeft className='mt-1 cursor-pointer' onClick={()=> navigate(-1)}/>Test sheet review</h2>
       {/* Header */}
       <div className="flex justify-between items-center bg-[#F9F9F9] py-2 px-2">
         

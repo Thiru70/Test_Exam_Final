@@ -45,6 +45,20 @@ const Result = () => {
   },
 ];
 
+
+ const getStatusStyles = (status) => {
+    switch (status) {
+      case 'Passed':
+        return 'text-green-600 border-green-400';
+      case 'Failed':
+        return 'text-red-600 border-red-400';
+      case 'Active':
+        return 'text-blue-600 border-blue-400';
+      default:
+        return 'text-gray-600 border-gray-300';
+    }
+  };
+
   return (
     <div className="p-6 space-y-8">
       {mockData.map((round, idx) => (

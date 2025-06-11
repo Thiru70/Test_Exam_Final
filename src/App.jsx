@@ -17,6 +17,9 @@ import FaceDetection from './User/Components/FaceDetection';
 import { SelectionProcessStages } from './User/Components/SelectionProcessStages';
 import MyTest from './Admin/Pages/MyTest';
 import Respondents from './Admin/Pages/Respondents';
+import StudentForm from './Admin/Pages/StudentForm';
+import MyAccount from './Admin/Pages/MyAccount';
+
 import Layout from './Admin/Components/Layout';
 import MonacoEditor from './User/Components/MonacoCodeEditer';
 import ThankYou from './User/Components/ThankYou';
@@ -28,6 +31,16 @@ import ResultTable from './Admin/Pages/ResultTable';
 import TestSheetReview from './Admin/Pages/TestSheetReview';
 import Testconfiguration from './Admin/Pages/Testconfiguration';
 import QuestionSet from './Admin/Pages/QuestionSet';
+import InfromationForm from './Admin/Pages/Information';
+import SetEligibilityCriteria from './User/Components/EligibilityCriteria';
+import StudentTable from './Admin/Pages/StudentTable';
+import StudentEmailForm from './Admin/Pages/StudentEmailForm';
+import Emailsuccess from './Admin/Pages/Emailsuccess';
+import CandidateList from './Admin/Pages/CandidateList';
+import MailDashboard from './Admin/Pages/MailDashboard';
+import SetCriteria from './Admin/Pages/SetCriteria';
+
+
 // import FaceRecognition from './User/Components/FaceRecognition';
 
 const FaceDetectionWrapper = () => {
@@ -68,6 +81,7 @@ function App() {
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/information" element={<InfromationForm />} />
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/otp-verification" element={<OtpVerification />} />
         <Route path="/info-form" element={<InfoForm />} />
@@ -88,13 +102,23 @@ function App() {
         {/* Admin Routes (wrapped in layout) */}
         <Route element={<Layout />}>
           <Route path="/myTest" element={<MyTest />} />
+          <Route path="/setCriteria" element={<SetEligibilityCriteria />} />
           <Route path="/respondents" element={<Respondents />} />
           <Route path="/database" element={<Result />} />
+          <Route path="/StudentForm" element={<StudentForm/>} />
+          <Route path="/MyAccount" element={<MyAccount/>} />
           <Route path="/emailForm" element={<EmailForm />} />
           <Route path="/resultTable" element={<ResultTable />} />
           <Route path="/testReview" element={<TestSheetReview />} />
           <Route path="/testconfiguration" element={<Testconfiguration />} />
           <Route path="/questionSet" element={<QuestionSet />} />
+          <Route path="/student-form" element={<StudentTable />} />
+          <Route path="/studentEmail-form" element={<StudentEmailForm />} />
+          <Route path="/Emailsuccess" element={<Emailsuccess />} />
+          <Route path="/candidateList" element={<CandidateList />} />
+          <Route path="/MailDashborad" element={<MailDashboard />} />
+          <Route path="/SetCriteria" element={<SetCriteria />} />
+
         </Route>
 
         {/* Fallback Route */}
