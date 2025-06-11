@@ -16,7 +16,7 @@ import CodingSection from './User/Components/CodingSection';
 import InterviewInvitation from './User/Components/InterviewInvitation';
 import FaceDetection from './User/Components/FaceDetection';
 import { SelectionProcessStages } from './User/Components/SelectionProcessStages';
-import {MyResults} from './User/Components/MyResults';
+
 
 
 
@@ -104,7 +104,7 @@ function App() {
         <Route path="/interview-invitation" element={<InterviewInvitationWrapper />} />
         <Route path="/face-detect" element={<FaceDetection />} />
         <Route path="/selection-process" element={<SelectionProcessStages />} />
-        <Route path="/MyResults" element={<MyResults/>} />
+        
         
         
 
