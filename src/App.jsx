@@ -40,6 +40,7 @@ import CandidateList from './Admin/Pages/CandidateList';
 import MailDashboard from './Admin/Pages/MailDashboard';
 import SetCriteria from './Admin/Pages/SetCriteria';
 import EligibilityCriteriaForm from './Admin/Pages/SetCriteria';
+import InformationForm from './Admin/Pages/Information';
 
 
 // import FaceRecognition from './User/Components/FaceRecognition';
@@ -82,7 +83,7 @@ function App() {
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/information" element={<InfromationForm />} />
+        <Route path="/information" element={<InformationForm />} />
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/otp-verification" element={<OtpVerification />} />
         <Route path="/info-form" element={<InfoForm />} />
