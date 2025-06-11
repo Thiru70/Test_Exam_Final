@@ -1,35 +1,17 @@
 import React from "react";
-import { FaHome, FaClipboardList, FaInfoCircle, FaLifeRing, FaUser } from "react-icons/fa";
+import {
+  FaHome,
+  FaClipboardList,
+  FaInfoCircle,
+  FaLifeRing,
+  FaUser,
+} from "react-icons/fa";
 
 const MyResults = () => {
   return (
     <div className="flex min-h-screen font-sans">
-      {/* Sidebar */}
-      <aside className="w-60 bg-white shadow-md p-5">
-        <h2 className="text-xl font-semibold mb-8">Exam Portal</h2>
-        <nav className="space-y-6 text-gray-700">
-          <div className="flex items-center gap-3">
-            <FaHome />
-            <span>My test</span>
-          </div>
-          <div className="flex items-center gap-3 text-blue-600 font-semibold border-l-4 border-blue-600 pl-2">
-            <FaClipboardList />
-            <span>My Results</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <FaInfoCircle />
-            <span>Exam instructions</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <FaLifeRing />
-            <span>Support</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <FaUser />
-            <span>Profile</span>
-          </div>
-        </nav>
-      </aside>
+      {/* Sidebar (optional) */}
+      {/* You can add sidebar here if needed */}
 
       {/* Main Content */}
       <main className="flex-1 bg-blue-100 p-6">
