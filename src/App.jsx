@@ -27,8 +27,8 @@ import MyAccount from './Admin/Pages/MyAccount';
 
 import Layout from './Admin/Components/Layout';
 import MonacoEditor from './User/Components/MonacoCodeEditer';
-import codeEditor from './User/Components/CodeEditor';
 import ThankYou from './User/Components/ThankYou';
+import ExamPortalForm from './User/Pages/ExamPortalLogin';
 
 import EmailForm from './Admin/Pages/EmailForm';
 import Result from './Admin/Pages/Result';
@@ -36,6 +36,8 @@ import ResultTable from './Admin/Pages/ResultTable';
 import TestSheetReview from './Admin/Pages/TestSheetReview';
 import Testconfiguration from './Admin/Pages/Testconfiguration';
 import QuestionSet from './Admin/Pages/QuestionSet';
+import InfromationForm from './Admin/Pages/Information';
+import SetEligibilityCriteria from './User/Components/EligibilityCriteria';
 import StudentTable from './Admin/Pages/StudentTable';
 import StudentEmailForm from './Admin/Pages/StudentEmailForm';
 import Emailsuccess from './Admin/Pages/Emailsuccess';
@@ -84,10 +86,11 @@ function App() {
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/information" element={<InfromationForm />} />
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/otp-verification" element={<OtpVerification />} />
         <Route path="/info-form" element={<InfoForm />} />
-        
+        <Route path="/Exam-login" element={<ExamPortalForm />} />
 
         {/* User Routes */}
         <Route path="/student-dashboard" element={<StudentDashboard />} />
@@ -111,6 +114,7 @@ function App() {
         {/* Admin Routes (wrapped in layout) */}
         <Route element={<Layout />}>
           <Route path="/myTest" element={<MyTest />} />
+          <Route path="/setCriteria" element={<SetEligibilityCriteria />} />
           <Route path="/respondents" element={<Respondents />} />
           <Route path="/database" element={<Result />} />
           <Route path="/StudentForm" element={<StudentForm/>} />
@@ -131,7 +135,7 @@ function App() {
 
         {/* Fallback Route */}
         <Route path="/Monaco-editor" element={<MonacoEditor />} />
-        <Route path="/code-Editor" element={<codeEditor />} />
+       
         <Route path="/ThankYou" element={<ThankYou />} />
       </Routes>
     </Router>
