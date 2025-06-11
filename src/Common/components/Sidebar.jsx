@@ -2,7 +2,7 @@ import React from 'react';
 
 const Sidebar = () => {
   return (
-    <div className="w-1/3 bg-blue-600 flex items-center justify-center">
+    <div className="w-1/3 bg-blue-600 min-h-screen flex items-center justify-center">
       <div className="relative w-3/4 max-w-[350px]">
         {/* Stacked exam sheets image */}
         <div className="relative transform rotate-[-8deg] -ml-4">
