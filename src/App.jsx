@@ -22,8 +22,8 @@ import MyAccount from './Admin/Pages/MyAccount';
 
 import Layout from './Admin/Components/Layout';
 import MonacoEditor from './User/Components/MonacoCodeEditer';
-import codeEditor from './User/Components/CodeEditor';
 import ThankYou from './User/Components/ThankYou';
+import ExamPortalForm from './User/Pages/ExamPortalLogin';
 
 import EmailForm from './Admin/Pages/EmailForm';
 import Result from './Admin/Pages/Result';
@@ -86,6 +86,7 @@ function App() {
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/otp-verification" element={<OtpVerification />} />
         <Route path="/info-form" element={<InfoForm />} />
+        <Route path="/Exam-login" element={<ExamPortalForm />} />
 
         {/* User Routes */}
         <Route path="/student-dashboard" element={<StudentDashboard />} />
@@ -122,7 +123,7 @@ function App() {
 
         {/* Fallback Route */}
         <Route path="/Monaco-editor" element={<MonacoEditor />} />
-        <Route path="/code-Editor" element={<codeEditor />} />
+       
         <Route path="/ThankYou" element={<ThankYou />} />
       </Routes>
     </Router>

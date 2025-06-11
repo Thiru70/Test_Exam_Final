@@ -8,10 +8,12 @@ const Result = () => {
     Category:'',
     language :'',
    });
-const handleFileChange = (e) => {
-    if (e.target.files.length > 0) {
-      setFileName(e.target.files[0].name);
-    }
+ const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormdata((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
   return (
     <div className="p-6 ">
@@ -19,8 +21,9 @@ const handleFileChange = (e) => {
         <label className="block mb-1 font-semibold mt-2">Test Name</label>
         <input
           type="text"
+         name="name"
           value={FromData.name}
-          onChange={(e) => handleFileChange(e.target.value)}
+          onChange={handleInputChange}
           className="w-full border-b border-[#000000] rounded px-3 py-2 focus:outline-none"
         />
       </div>
@@ -29,15 +32,21 @@ const handleFileChange = (e) => {
         <label className="block mb-1 font-semibold mt-2">Category</label>
         <input
           type="text"
+          name="Category"
           value={FromData.Category}
-          onChange={(e) => handleFileChange(e.target.value)}
+          onChange={handleInputChange}
           className="w-full border-b border-[#000000] rounded px-3 py-2 focus:outline-none"
         />
       </div>
 
       <div className='mt-2'>
         <label className="block mb-1 font-semibold mt-2">Test language</label>
-        <select name="" className='px-8 mt-2 py-2 border border-black focus:outline-none rounded-md'>
+        <select
+          name="language"
+          value={FromData.language}
+          onChange={handleInputChange}
+          className='px-8 mt-2 py-2 border border-black focus:outline-none rounded-md'
+        >
             <option value="">Language</option>
             <option value="English">English</option>
             <option value="Tamil">Tamil</option>

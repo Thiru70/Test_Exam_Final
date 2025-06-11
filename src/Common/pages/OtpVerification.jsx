@@ -6,7 +6,7 @@ import AuthCard from '../components/AuthCard';
 import { EMAILJS_CONFIG } from '../../services/emailConfig';
 
 const OtpVerification = () => {
-  const [otp, setOtp] = useState(['', '', '', '']);
+  const [otp, setOtp] = useState(['', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(30);
   const [error, setError] = useState('');
@@ -15,7 +15,7 @@ const OtpVerification = () => {
   const email = new URLSearchParams(location.search).get('email') || '';
   const userType = new URLSearchParams(location.search).get('type') || 'student';
   
-  const inputRefs = Array(4).fill(0).map(() => React.createRef());
+  const inputRefs = Array(5).fill(0).map(() => React.createRef());
   
   useEffect(() => {
     const countdown = setInterval(() => {
@@ -30,7 +30,7 @@ const OtpVerification = () => {
     const storedEmail = localStorage.getItem('otpEmail');
     if (storedEmail !== email) {
       // If emails don't match, generate new OTP for current email
-      const newOtp = Math.floor(1000 + Math.random() * 9000).toString();
+      const newOtp = Math.floor(10000 + Math.random() * 90000).toString();
       localStorage.setItem('currentOtp', newOtp);
       localStorage.setItem('otpEmail', email);
     }
@@ -47,7 +47,7 @@ const OtpVerification = () => {
     setError('');
     
     // Auto-focus next input field after filling current one
-    if (value && index < 3) {
+    if (value && index < 4) {
       inputRefs[index + 1].current.focus();
     }
   };
@@ -106,7 +106,7 @@ fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/api/submit-otp
     }
     
     // Generate new OTP
-    const newOtp = Math.floor(1000 + Math.random() * 9000).toString();
+    const newOtp = Math.floor(10000 + Math.random() * 90000).toString();
     
     // Prepare email template parameters
     const templateParams = {
