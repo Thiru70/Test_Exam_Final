@@ -113,7 +113,7 @@ function App() {
           <Route path="/studentEmail-form" element={<StudentEmailForm />} />
           <Route path="/Emailsuccess" element={<Emailsuccess />} />
           <Route path="/candidateList" element={<CandidateList />} />
-          
+          <Route path="/MailDashboard" element={<MailDashboard/>} />
           <Route path="/SetCriteria" element={<SetCriteria />} />
 
         </Route>
