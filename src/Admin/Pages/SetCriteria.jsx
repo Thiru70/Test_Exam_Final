@@ -9,16 +9,20 @@ const EligibilityCriteriaForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Process form data here
-    alert(`Criteria set:\n12th % >= ${min12th}\nCGPA >= ${minCGPA}\nStream: ${allowedStream}`);
+    alert(
+      `Criteria set:\n12th % >= ${min12th}\nCGPA >= ${minCGPA}\nStream: ${allowedStream}`
+    );
   };
 
   return (
-    <div style={{ padding: "40px", maxWidth: "600px", margin: "auto", background: "#fff" }}>
-      <h2 style={{ color: "#33475b", marginBottom: "24px" }}>Set Eligibility Criteria</h2>
+    <div className="max-w-xl mx-auto bg-white p-10 rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold text-blue-800 mb-6">
+        Set Eligibility Criteria
+      </h2>
 
       <form onSubmit={handleSubmit}>
-        <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
+        {/* 12th Percentage */}
+        <label className="block mb-2 font-semibold text-gray-700">
           Minimum 12th %
         </label>
         <input
@@ -26,20 +30,14 @@ const EligibilityCriteriaForm = () => {
           placeholder="e.g. 60"
           value={min12th}
           onChange={(e) => setMin12th(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "8px 12px",
-            marginBottom: "20px",
-            borderRadius: "6px",
-            border: "1px solid #ccc",
-            fontSize: "16px",
-          }}
+          className="w-full px-3 py-2 mb-5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
           min="0"
           max="100"
           required
         />
 
-        <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
+        {/* CGPA */}
+        <label className="block mb-2 font-semibold text-gray-700">
           Minimum CGPA
         </label>
         <input
@@ -47,37 +45,21 @@ const EligibilityCriteriaForm = () => {
           placeholder="e.g. 6"
           value={minCGPA}
           onChange={(e) => setMinCGPA(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "8px 12px",
-            marginBottom: "20px",
-            borderRadius: "6px",
-            border: "1px solid #ccc",
-            fontSize: "16px",
-          }}
+          className="w-full px-3 py-2 mb-5 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
           min="0"
           max="10"
           step="0.01"
           required
         />
 
-        <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>
+        {/* Allowed Streams */}
+        <label className="block mb-2 font-semibold text-gray-700">
           Allowed Streams
         </label>
         <select
           value={allowedStream}
           onChange={(e) => setAllowedStream(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "8px 12px",
-            marginBottom: "20px",
-            borderRadius: "6px",
-            border: "1px solid #ccc",
-            fontSize: "16px",
-            height: "120px",
-          }}
-          size={streams.length}
-          required
+          className="w-full px-3 py-2 mb-6 border border-gray-300 rounded"
         >
           {streams.map((stream) => (
             <option key={stream} value={stream}>
@@ -88,16 +70,7 @@ const EligibilityCriteriaForm = () => {
 
         <button
           type="submit"
-          style={{
-            backgroundColor: "#2d86f0",
-            color: "white",
-            padding: "10px 24px",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-            fontWeight: "600",
-            fontSize: "16px",
-          }}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-semibold transition"
         >
           Set Criteria
         </button>

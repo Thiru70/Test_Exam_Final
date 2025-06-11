@@ -39,6 +39,7 @@ import Emailsuccess from './Admin/Pages/Emailsuccess';
 import CandidateList from './Admin/Pages/CandidateList';
 import MailDashboard from './Admin/Pages/MailDashboard';
 import SetCriteria from './Admin/Pages/SetCriteria';
+import EligibilityCriteriaForm from './Admin/Pages/SetCriteria';
 
 
 // import FaceRecognition from './User/Components/FaceRecognition';
@@ -101,7 +102,6 @@ function App() {
         {/* Admin Routes (wrapped in layout) */}
         <Route element={<Layout />}>
           <Route path="/myTest" element={<MyTest />} />
-          <Route path="/setCriteria" element={<SetEligibilityCriteria />} />
           <Route path="/respondents" element={<Respondents />} />
           <Route path="/database" element={<Result />} />
           <Route path="/StudentForm" element={<StudentForm/>} />
@@ -116,7 +116,7 @@ function App() {
           <Route path="/Emailsuccess" element={<Emailsuccess />} />
           <Route path="/candidateList" element={<CandidateList />} />
           <Route path="/MailDashborad" element={<MailDashboard />} />
-          <Route path="/SetCriteria" element={<SetCriteria />} />
+          <Route path="/SetCriteria" element={<EligibilityCriteriaForm />} />
 
         </Route>
 
