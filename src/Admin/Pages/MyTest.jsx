@@ -15,6 +15,7 @@ const MyTest = () => {
   const [showTimeInputs, setShowTimeInputs] = useState("");
   const [currentTestId, setCurrentTestId] = useState(null)
   const fileInputRef = useRef(null);
+  const email = localStorage.getItem('otpEmail')
 
   const handleBrowseClick = () => {
     fileInputRef.current.click();
@@ -22,7 +23,7 @@ const MyTest = () => {
 
   const fetchAllTests = async () => {
     const response = await axiosInstance.get(
-      "/tests?createdBy=admin@yourdomain.com"
+      `/tests?createdBy=${email}`
     );
     setTestData(response.data);
     console.log(response.data, "response");
@@ -35,41 +36,6 @@ const MyTest = () => {
       // Handle file upload here
     }
   };
-
-  //  const testData = [
-  //   {
-  //     id: 1,
-  //     status: "Setup in progress",
-  //     statusType: "danger",
-  //     title: "Quiz of General knowledge",
-  //     description: "Description",
-  //     date: "2025-03-10",
-  //   },
-  //   {
-  //     id: 2,
-  //     status: "Setup in progress",
-  //     statusType: "danger",
-  //     title: "Quiz of General knowledge",
-  //     description: "Description",
-  //     date: "2025-03-10",
-  //   },
-  //   {
-  //     id: 3,
-  //     status: "Setup in progress",
-  //     statusType: "danger",
-  //     title: "Quiz of General knowledge",
-  //     description: "Description",
-  //     date: "2025-03-10",
-  //   },
-  //   {
-  //     id: 4,
-  //     status: "Active",
-  //     statusType: "success",
-  //     title: "Aptitude test",
-  //     description: "Description",
-  //     date: "2025-03-10",
-  //   },
-  // ];
 
   const handleTestDelete =async (getCurrentTestId) => {
     const result = await axiosInstance.delete(`/test/${getCurrentTestId}`) 

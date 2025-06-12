@@ -1,6 +1,6 @@
 import { Eye, EyeOff } from "lucide-react";
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
 
 export default function InformationForm() {
@@ -14,6 +14,7 @@ export default function InformationForm() {
     password: "",
     confirm_password: "",
   });
+  const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -31,9 +32,10 @@ export default function InformationForm() {
       const response = await axiosInstance.post('/company/register', formData);
       console.log('Form submitted:', response.data);
       window.alert('Company registered successfully')
+      navigate('/myTest')
     } catch (err) {
       console.error('Submission error:', err);
-      window.alert("Company already registered with this email")
+      window.alert(err.response.data.error || "Company already registered with this email")
     }
   };
   return (
