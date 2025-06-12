@@ -39,7 +39,7 @@ import Emailsuccess from './Admin/Pages/Emailsuccess';
 import CandidateList from './Admin/Pages/CandidateList';
 import MailDashboard from './Admin/Pages/MailDashboard';
 import SetCriteria from './Admin/Pages/SetCriteria';
-
+import GradingCriteria from './Admin/Pages/GradingCriteria';
 
 // import FaceRecognition from './User/Components/FaceRecognition';
 
@@ -117,7 +117,7 @@ function App() {
           <Route path="/candidateList" element={<CandidateList />} />
           <Route path="/MailDashborad" element={<MailDashboard />} />
           <Route path="/SetCriteria" element={<SetCriteria />} />
-
+          <Route path="/GradingCriteria" element={<GradingCriteria />} />
         </Route>
 
         {/* Fallback Route */}
