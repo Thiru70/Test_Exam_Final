@@ -6,7 +6,11 @@ import LoginPage from './Common/pages/LoginPage';
 import EmailVerification from './Common/pages/EmailVerification';
 import OtpVerification from './Common/pages/OtpVerification';
 import InfoForm from './Common/pages/InfoForm';
-import StudentDashboard from './User/Components/StudentDashboard';
+import StudentLogin from './Common/pages/StudentLogin';
+import UserRegistrationForm from './Common/pages/StudentRegistrationForm';
+
+
+import StudentDashboard from './User/Pages/StudentDashboard';
 import FaceDetectionComponent from './User/Components/FaceDetection';
 import AudioDetectionComponent from './User/Components/AudioDetection';
 import Instructions from './User/Components/Instructions';
@@ -23,7 +27,7 @@ import MyAccount from './Admin/Pages/MyAccount';
 import Layout from './Admin/Components/Layout';
 import MonacoEditor from './User/Components/MonacoCodeEditer';
 import ThankYou from './User/Components/ThankYou';
-import ExamPortalForm from './User/Pages/ExamPortalLogin';
+
 
 import EmailForm from './Admin/Pages/EmailForm';
 import Result from './Admin/Pages/Result';
@@ -85,7 +89,9 @@ function App() {
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/otp-verification" element={<OtpVerification />} />
         <Route path="/info-form" element={<InfoForm />} />
-        <Route path="/Exam-login" element={<ExamPortalForm />} />
+        <Route path="/StudentLogin" element={<StudentLogin />} />
+        <Route path="/Student-RegistrationForm" element={<UserRegistrationForm />} />
+
 
         {/* User Routes */}
         <Route path="/student-dashboard" element={<StudentDashboard />} />
