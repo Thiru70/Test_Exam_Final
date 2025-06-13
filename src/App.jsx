@@ -30,6 +30,8 @@ import MonacoEditor from './User/Components/MonacoCodeEditer';
 import ThankYou from './User/Components/ThankYou';
 import ExamPortalLogin from './User/Pages/ExamPortalLogin';
 import MyResults from './User/Pages/MyResult';
+import Profile from './User/Pages/Profile';
+import Instruction from './User/Components/Instructions'; 
 
 import EmailForm from './Admin/Pages/EmailForm';
 import Result from './Admin/Pages/Result';
@@ -45,7 +47,9 @@ import Emailsuccess from './Admin/Pages/Emailsuccess';
 import CandidateList from './Admin/Pages/CandidateList';
 import MailDashboard from './Admin/Pages/MailDashboard';
 import SetCriteria from './Admin/Pages/SetCriteria';
-
+import EligibilityCriteriaForm from './Admin/Pages/SetCriteria';
+import InformationForm from './Admin/Pages/Information';
+import GradingCriteria from './Admin/Pages/GradingCriteria';
 
 // import FaceRecognition from './User/Components/FaceRecognition';
 
@@ -87,12 +91,14 @@ function App() {
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/information" element={<InfromationForm />} />
+        <Route path="/information" element={<InformationForm />} />
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/otp-verification" element={<OtpVerification />} />
         <Route path="/info-form" element={<InfoForm />} />
         <Route path="/Exam-login" element={<ExamPortalLogin/>} />
         <Route path="/MyResults" element={<MyResults/>} />
+        <Route path="/Profile" element={<Profile/>} />
+        <Route path="/Instruction" element={<Instruction/>} />
 
         {/* User Routes */}
         <Route path="/student-dashboard" element={<StudentDashboard />} />
@@ -116,7 +122,6 @@ function App() {
         {/* Admin Routes (wrapped in layout) */}
         <Route element={<Layout />}>
           <Route path="/myTest" element={<MyTest />} />
-          <Route path="/setCriteria" element={<SetEligibilityCriteria />} />
           <Route path="/respondents" element={<Respondents />} />
           <Route path="/database" element={<Result />} />
           <Route path="/StudentForm" element={<StudentForm/>} />
@@ -130,9 +135,9 @@ function App() {
           <Route path="/studentEmail-form" element={<StudentEmailForm />} />
           <Route path="/Emailsuccess" element={<Emailsuccess />} />
           <Route path="/candidateList" element={<CandidateList />} />
-          <Route path="/MailDashboard" element={<MailDashboard/>} />
-          <Route path="/SetCriteria" element={<SetCriteria />} />
-
+          <Route path="/MailDashborad" element={<MailDashboard />} />
+          <Route path="/SetCriteria" element={<EligibilityCriteriaForm />} />
+          <Route path="/GradingCriteria" element={<GradingCriteria />} />
         </Route>
 
         {/* Fallback Route */}

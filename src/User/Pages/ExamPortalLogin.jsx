@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axiosInstance from '../../utils/axiosInstance';
 
 // Sidebar Component
 const Sidebar = () => {
@@ -114,7 +115,7 @@ const AuthCard = ({ title, subtitle, children }) => {
 // Main Exam Portal Component
 const ExamPortalForm = () => {
   const [formData, setFormData] = useState({
-    studentId: '23467abc',
+    studentId: '',
     password: ''
   });
   
@@ -130,8 +131,10 @@ const ExamPortalForm = () => {
   
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log('Form submitted:', formData);
+    
+    const resonse = axiosInstance.post('/student/login',{...formData})
+    
+    console.log('Form submitted:', resonse.data);
     alert('Login attempt for Student ID: ' + formData.studentId);
   };
   
@@ -204,16 +207,7 @@ const ExamPortalForm = () => {
             Log In
           </button>
         </div>
-        
-        {/* Footer Links */}
-        <div className="mt-6 text-center space-y-2">
-          <a href="#" className="text-blue-600 text-sm hover:underline block">
-            Forgot your password?
-          </a>
-          <p className="text-gray-600 text-sm">
-            Need help? <a href="#" className="text-blue-600 hover:underline">Contact Support</a>
-          </p>
-        </div>
+  
       </AuthCard>
     </div>
   );
