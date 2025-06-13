@@ -20,6 +20,7 @@
     "@tensorflow-models/face-landmarks-detection": "^1.0.6",
     "@tensorflow/tfjs": "^4.22.0",
     "@types/prop-types": "^15.7.14",
+    "axios": "^1.9.0",
     "emailjs-com": "^3.2.0",
     "lucide-react": "^0.511.0",
     "primeicons": "^7.0.0",

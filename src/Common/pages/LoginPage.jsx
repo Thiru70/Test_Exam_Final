@@ -18,14 +18,14 @@ const LoginPage = () => {
             title="Company"
             description="For recruiters posting jobs or campus drives at partner colleges"
             selected={true}
-            to="#"
+            to="/email-verification?type=company"
           />
           
           <OptionCard 
             type="student"
             title="Student"
             description="For students seeking opportunities and campus placement"
-            to="#"
+            to="/email-verification?type=studen"
           />
         </div>
         
