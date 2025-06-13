@@ -51,7 +51,7 @@ export default function InformationForm() {
         <div className="absolute top-6 right-8 text-sm text-gray-400">
           Already have an account?{" "}
           <Link
-            to="/login"
+            to="/company-login"
             className="text-blue-600 hover:underline font-medium"
           >
             Sign In

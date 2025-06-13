@@ -46,6 +46,7 @@ import SetCriteria from './Admin/Pages/SetCriteria';
 import EligibilityCriteriaForm from './Admin/Pages/SetCriteria';
 import InformationForm from './Admin/Pages/Information';
 import GradingCriteria from './Admin/Pages/GradingCriteria';
+import CompanyLoginForm from './Admin/Pages/CompanyLogin';
 
 // import FaceRecognition from './User/Components/FaceRecognition';
 
@@ -87,6 +88,7 @@ function App() {
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/company-login" element={<CompanyLoginForm />} />
         <Route path="/information" element={<InformationForm />} />
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/otp-verification" element={<OtpVerification />} />
