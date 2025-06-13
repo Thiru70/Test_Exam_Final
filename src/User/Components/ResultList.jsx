@@ -1,57 +1,6 @@
 import React from "react";
 
-const ResultsList = ({ onViewTest }) => {
-  const completedTests = [
-    {
-      id: 1,
-      title: "Aptitude test",
-      description: "Description",
-      status: "Ended",
-      createdDate: "2025-06-03",
-      testResults: {
-        createdDate: "2025-03-10",
-        tests: [
-          {
-            slNo: "01.",
-            testName: "Aptitude test",
-            questions: 30,
-            duration: 30,
-            marks: 100
-          }
-        ],
-        total: {
-          questions: 30,
-          duration: 30,
-          marks: 100
-        }
-      }
-    },
-    {
-      id: 2,
-      title: "Aptitude test", 
-      description: "Description",
-      status: "Ended",
-      createdDate: "2025-06-03",
-      testResults: {
-        createdDate: "2025-03-10",
-        tests: [
-          {
-            slNo: "01.",
-            testName: "Aptitude test",
-            questions: 30,
-            duration: 30,
-            marks: 100
-          }
-        ],
-        total: {
-          questions: 30,
-          duration: 30,
-          marks: 100
-        }
-      }
-    }
-  ];
-
+const ResultsList = ({ tests, onViewTest }) => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="mb-6">
@@ -60,7 +9,7 @@ const ResultsList = ({ onViewTest }) => {
       </div>
 
       <div className="space-y-4">
-        {completedTests.map((test) => (
+        {tests.map((test) => (
           <div key={test.id} className="bg-white rounded-lg border border-gray-200 p-4">
             <div className="flex justify-between items-start">
               <div className="flex-1">

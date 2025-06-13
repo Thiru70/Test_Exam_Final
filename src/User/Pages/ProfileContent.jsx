@@ -1,57 +1,144 @@
-import React from "react";
+import React, { useState } from "react";
+import { User, Key, Shield, LogOut } from "lucide-react";
 
 const ProfileContent = () => {
+  const [openSection, setOpenSection] = useState(null);
+
+  const toggleSection = (section) => {
+    setOpenSection(openSection === section ? null : section);
+  };
+
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="mb-6">
-        <h2 className="text-lg font-medium text-gray-800 mb-2">Profile</h2>
-        <p className="text-sm text-gray-600">Manage your account information</p>
-      </div>
-      
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h3 className="font-medium text-gray-800 mb-4">Personal Information</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" defaultValue="John Doe" />
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Main Content */}
+      <div className="flex-1 p-6">
+        <div className="max-w-2xl">
+          {/* Profile Information Section */}
+          <div className="bg-gray-200 rounded-lg mb-4">
+            <div 
+              className="p-4 cursor-pointer flex items-center"
+              onClick={() => toggleSection('profile')}
+            >
+              <User className="w-5 h-5 mr-2 text-gray-600" />
+              <span className="font-medium text-gray-800">Profile Information</span>
+            </div>
+            
+            {openSection === 'profile' && (
+              <div className="px-4 pb-4">
+                <div className="space-y-3">
+                  <input 
+                    type="text" 
+                    className="w-full p-2 bg-gray-300 border border-gray-400 rounded text-sm"
+                    placeholder="Full Name"
+                  />
+                  <input 
+                    type="email" 
+                    className="w-full p-2 bg-gray-300 border border-gray-400 rounded text-sm"
+                    placeholder="Email"
+                  />
+                  <input 
+                    type="text" 
+                    className="w-full p-2 bg-gray-300 border border-gray-400 rounded text-sm"
+                    placeholder="Phone"
+                  />
+                  <input 
+                    type="text" 
+                    className="w-full p-2 bg-gray-300 border border-gray-400 rounded text-sm"
+                    placeholder="Address"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input type="email" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" defaultValue="john.doe@example.com" />
+            )}
+          </div>
+
+          {/* Change Password Section */}
+          <div className="bg-gray-200 rounded-lg mb-4">
+            <div 
+              className="p-4 cursor-pointer flex items-center"
+              onClick={() => toggleSection('password')}
+            >
+              <Key className="w-5 h-5 mr-2 text-gray-600" />
+              <span className="font-medium text-gray-800">Change Password</span>
+            </div>
+            
+            {openSection === 'password' && (
+              <div className="px-4 pb-4">
+                <div className="space-y-3">
+                  <input 
+                    type="password" 
+                    className="w-full p-2 bg-gray-300 border border-gray-400 rounded text-sm"
+                    placeholder="Current password"
+                  />
+                  <input 
+                    type="password" 
+                    className="w-full p-2 bg-gray-300 border border-gray-400 rounded text-sm"
+                    placeholder="New password"
+                  />
+                  <input 
+                    type="password" 
+                    className="w-full p-2 bg-gray-300 border border-gray-400 rounded text-sm"
+                    placeholder="Confirm new password"
+                  />
+                  <div className="pt-2">
+                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded text-sm font-medium">
+                      Update password
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                <input type="tel" className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" defaultValue="+1 (555) 123-4567" />
-              </div>
+            )}
+          </div>
+
+          {/* Security Section */}
+          <div className="bg-gray-200 rounded-lg mb-6">
+            <div 
+              className="p-4 cursor-pointer flex items-center"
+              onClick={() => toggleSection('security')}
+            >
+              <Shield className="w-5 h-5 mr-2 text-gray-600" />
+              <span className="font-medium text-gray-800">Security</span>
             </div>
           </div>
-          
-          <div>
-            <h3 className="font-medium text-gray-800 mb-4">Account Settings</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Preferred Language</label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option>English</option>
-                  <option>Spanish</option>
-                  <option>French</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Time Zone</label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option>UTC-5 (Eastern)</option>
-                  <option>UTC-6 (Central)</option>
-                  <option>UTC-7 (Mountain)</option>
-                  <option>UTC-8 (Pacific)</option>
-                </select>
-              </div>
-              <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
-                Save Changes
-              </button>
-            </div>
+
+          {/* Logout Button */}
+          <div className="text-right">
+            <button className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded text-sm font-medium">
+              logout
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Sidebar */}
+      <div className="w-80 p-6">
+        {/* Profile Picture Section */}
+        <div className="bg-gray-300 rounded-lg p-6 mb-4 text-center">
+          <div className="w-24 h-24 bg-gray-400 rounded-full mx-auto mb-4 flex items-center justify-center">
+            <User className="w-12 h-12 text-gray-600" />
+          </div>
+          <button className="block w-full bg-gray-400 hover:bg-gray-500 text-gray-800 py-2 px-4 rounded text-sm mb-2">
+            Update profile picture
+          </button>
+          <button className="block w-full bg-gray-400 hover:bg-gray-500 text-gray-800 py-2 px-4 rounded text-sm">
+            delete profile picture
+          </button>
+        </div>
+
+        {/* Menu Items */}
+        <div className="bg-gray-300 rounded-lg p-4">
+          <div className="space-y-2">
+            <button className="w-full text-left py-2 px-3 bg-gray-400 hover:bg-gray-500 rounded text-sm text-gray-800">
+              Edit profile
+            </button>
+            <button className="w-full text-left py-2 px-3 bg-gray-400 hover:bg-gray-500 rounded text-sm text-gray-800">
+              FAQs
+            </button>
+            <button className="w-full text-left py-2 px-3 bg-gray-400 hover:bg-gray-500 rounded text-sm text-gray-800">
+              Account Settings
+            </button>
+            <button className="w-full text-left py-2 px-3 bg-gray-400 hover:bg-gray-500 rounded text-sm text-gray-800">
+              about us
+            </button>
           </div>
         </div>
       </div>
