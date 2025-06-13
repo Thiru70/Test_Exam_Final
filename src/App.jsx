@@ -115,7 +115,7 @@ function App() {
           <Route path="/respondents" element={<Respondents />} />
           <Route path="/database" element={<Result />} />
           <Route path="/StudentForm" element={<StudentForm/>} />
-          <Route path="/MyAccount" element={<MyAccount/>} />
+          <Route path="/account" element={<MyAccount/>} />
           <Route path="/emailForm" element={<EmailForm />} />
           <Route path="/resultTable" element={<ResultTable />} />
           <Route path="/testReview" element={<TestSheetReview />} />
