@@ -25,7 +25,7 @@ const HomePage = () => {
             type="student"
             title="Student"
             description="For students seeking opportunities and campus placement"
-            to="/email-verification?type=student"
+            to="/StudentLogin?type=student"
           />
         </div>
       </AuthCard>

@@ -20,8 +20,9 @@ const TestSettingsForm = () => {
     if (!selectedDate || !startTime || !endTime) return '';
     const formattedDate = new Date(selectedDate).toLocaleDateString('en-GB');
     return `${formattedDate}, ${startTime} - ${endTime}`;
-  };
+  }
 
+  console.log(localStorage.getItem('testName'),"testName")
   const handleSave = () => {
     const data = {
       testName,
@@ -33,6 +34,53 @@ const TestSettingsForm = () => {
       timePerQuestion,
     };
     console.log('Saved settings:', data);
+  };
+
+  const buildTestPayload = () => {
+    return {
+      testName: "Aptitude Test - General",
+      duration: 45, 
+      passingMarks: 5,
+      shuffle,
+      questions: questionsList.map((q) => ({
+        question: q.question,
+        type: q.answerType === "single" || q.answerType === "multiple" ? "MCQ" : q.answerType,
+        options: q.answers?.map((a) => a.text) || [],
+        answer:
+          q.answerType === "short"
+            ? "" 
+            : q.answers?.find((a) => a.correct)?.text || "", // Only returns the first correct answer
+        difficulty: "easy", x 
+      })),
+      eligibility: {
+        required: true,
+        tenthPercentage: 60,
+        twelfthPercentage: 65,
+      },
+      sessionExam: {
+        isSession: true,
+        startDate: "2025-06-10",
+        endDate: "2025-06-15",
+        startTime: "09:00",
+        endTime: "11:00",
+      },
+      createdBy: "admin@yourdomain.com",
+    };
+  };
+  
+  const handleSaveTest = async () => {
+    const payload = buildTestPayload();
+    try {
+      const response = await axiosInstance.post('/test',payload)
+  
+      if (!response) throw new Error("Failed to save test");
+  
+      alert("Test saved successfully!");
+      navigate("/GradingCriteria");
+    } catch (error) {
+      console.error(error);
+      alert("Error saving test");
+    }
   };
 
   return (

@@ -351,7 +351,7 @@ const AptitudeTest = ({ onNavigateToCoding }) => {
         if (document.hidden && testStarted && timeLeft > 0) {
             setViolationCount(prev => prev + 1);
             setShowViolationWarning(true);
-            // Save immediately on tab switch
+           
             saveTestSession();
         }
     };

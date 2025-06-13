@@ -1,115 +1,212 @@
-import React, { useState } from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
+import React, { useState } from "react";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import { useNavigate } from "react-router-dom";
-const fullToolbarOptions = [
-  [{ 'undo': 'undo' }, { 'redo': 'redo' }],
-  [{ 'header': [1, 2, 3, false] }],
-  ['bold', 'italic', 'underline', 'strike', 'blockquote', 'code'],
-  [{ 'script': 'sub' }, { 'script': 'super' }],
-  ['link', 'image', 'video', 'formula'],
-  [{ 'color': [] }, { 'background': [] }],
-  [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
-  [{ 'align': [] }],
-  ['clean'],
+import axiosInstance from "../../utils/axiosInstance";
+
+// Toolbar options for ReactQuill
+const toolbarOptions = [
+  [{ header: [1, 2, 3, false] }],
+  ["bold", "italic", "underline", "strike", "blockquote", "code"],
+  [{ script: "sub" }, { script: "super" }],
+  ["link", "image", "video", "formula"],
+  [{ color: [] }, { background: [] }],
+  [{ list: "ordered" }, { list: "bullet" }, { indent: "-1" }, { indent: "+1" }],
+  [{ align: [] }],
+  ["clean"],
 ];
 
+// Helper to strip HTML tags
+const stripHtml = (html) => html.replace(/<[^>]*>?/gm, "");
+
+// Answer defaults
+const getDefaultAnswers = (type) => {
+  if (type === "single") {
+    return [{ text: "", correct: false }];
+  }
+  if (type === "multiple") {
+    return [
+      { text: "", correct: false },
+      { text: "", correct: false },
+      { text: "", correct: false },
+      { text: "", correct: false },
+    ];
+  }
+  if (type === "truefalse") {
+    return [
+      { text: "True", correct: false },
+      { text: "False", correct: false },
+    ];
+  }
+  return [];
+};
+
 const QuestionForm = () => {
-  const [question, setQuestion] = useState('');
-  const [answerType, setAnswerType] = useState('single');
-  const [answers, setAnswers] = useState([{ text: '', correct: false }]);
-  const [scoreCorrect, setScoreCorrect] = useState('');
-  const [scoreIncorrect, setScoreIncorrect] = useState('');
-  const [showMaxScore, setShowMaxScore] = useState(false);
-  const [forceAnswer, setForceAnswer] = useState(true);
-  const [terminateOnWrong, setTerminateOnWrong] = useState(true);
-
   const navigate = useNavigate();
-    // New state to store all questions
+ 
+
+  // State
   const [questionsList, setQuestionsList] = useState([]);
-const [shuffle, setShuffle] = useState(false);
-  const defaultAnswers = {
-    single: [{ text: '', correct: false }],
-    multiple: [{ text: '', correct: false }],
-    truefalse: [
-      { text: 'True', correct: false },
-      { text: 'False', correct: false },
-    ],
-    short: [],
-  };
+  const [question, setQuestion] = useState("");
+  const [answerType, setAnswerType] = useState("single");
+  const [difficulty, setDifficulty] = useState("easy");
+  const [answers, setAnswers] = useState(getDefaultAnswers("single"));
+  const [shortAnswer, setShortAnswer] = useState("");
 
-  const handleAnswerTypeChange = (value) => {
-    setAnswerType(value);
-    setAnswers(defaultAnswers[value]);
-  };
-
-  const addAnswer = () => {
-    setAnswers([...answers, { text: '', correct: false }]);
+  // Handlers
+  const handleAnswerTypeChange = (type) => {
+    setAnswerType(type);
+    setAnswers(getDefaultAnswers(type));
+    setShortAnswer("");
   };
 
   const handleAnswerChange = (value, index) => {
-    const updatedAnswers = [...answers];
-    updatedAnswers[index].text = value;
-    setAnswers(updatedAnswers);
+    setAnswers((prev) =>
+      prev.map((a, i) => (i === index ? { ...a, text: value } : a))
+    );
   };
 
   const handleCheckboxChange = (index) => {
-    const updatedAnswers = [...answers];
-    if (answerType === 'single' || answerType === 'truefalse') {
-      updatedAnswers.forEach((a, i) => (a.correct = i === index));
-    } else {
-      updatedAnswers[index].correct = !updatedAnswers[index].correct;
-    }
-    setAnswers(updatedAnswers);
+    setAnswers((prev) =>
+      prev.map((a, i) => {
+        if (answerType === "multiple") {
+          return i === index ? { ...a, correct: !a.correct } : a;
+        } else {
+          return { ...a, correct: i === index };
+        }
+      })
+    );
   };
 
-    // Add Question handler
-  const handleAddQuestion = () => {
-    // Save current question to list
-    setQuestionsList([
-      ...questionsList,
-      {
-        question,
-        answerType,
-        answers,
-        scoreCorrect,
-        scoreIncorrect,
-        showMaxScore,
-        forceAnswer,
-        terminateOnWrong,
-      },
-    ]);
-    // Reset fields
-    setQuestion('');
-    setAnswerType('single');
-    setAnswers(defaultAnswers['single']);
-    setScoreCorrect('');
-    setScoreIncorrect('');
-    setShowMaxScore(false);
-    setForceAnswer(false);
-    setTerminateOnWrong(false);
+  const addAnswer = () => {
+    setAnswers((prev) => [...prev, { text: "", correct: false }]);
   };
+
+  // Format one question
+  const formatQuestionForAPI = (q) => {
+    let formatted = {
+      question: stripHtml(q.question),
+      type:
+        q.answerType === "single" || q.answerType === "multiple"
+          ? "MCQ"
+          : q.answerType === "truefalse"
+          ? "TrueFalse"
+          : "Short",
+      options: [],
+      answer: "",
+      difficulty: q.difficulty,
+    };
+
+    if (q.answerType === "single" || q.answerType === "multiple") {
+      formatted.options = q.answers.map((a) => stripHtml(a.text));
+      const correctAnswers = q.answers
+        .map((a) => (a.correct ? stripHtml(a.text) : null))
+        .filter(Boolean);
+      formatted.answer =
+        q.answerType === "single" ? correctAnswers[0] || "" : correctAnswers;
+    } else if (q.answerType === "truefalse") {
+      formatted.options = ["True", "False"];
+      const correct = q.answers.find((a) => a.correct);
+      formatted.answer = correct ? correct.text : "";
+    } else if (q.answerType === "short") {
+      formatted.answer = q.shortAnswer;
+    }
+
+    return formatted;
+  };
+
+  // Add question to local list
+  const handleAddQuestion = () => {
+    if (!stripHtml(question).trim()) {
+      alert("Please enter the question.");
+      return;
+    }
+
+    setQuestionsList((prev) => [
+      ...prev,
+      { question, answerType, difficulty, answers, shortAnswer },
+    ]);
+
+    // Reset form
+    setQuestion("");
+    setAnswers(getDefaultAnswers(answerType));
+    setShortAnswer("");
+  };
+
+  // Submit all questions to API
+  const handleSubmitAllQuestions = async () => {
+    if (questionsList.length === 0) {
+      alert("Please add at least one question.");
+      return;
+    }
+    const createdBy = localStorage.getItem('otpEmail')
+    const savedData = JSON.parse(localStorage.getItem("formData"));
+    const formattedQuestions = questionsList.map(formatQuestionForAPI);
+
+    const payload = {
+      testName: savedData.name || "Untitled Test",
+      duration: savedData.sessionExam.endTime - savedData.sessionExam.startTime || 45,
+      passingMarks: formattedQuestions.length *2,
+      shuffle: true,  
+      questions: formattedQuestions,
+      eligibility: {
+        required: savedData.eligibility?.required || false,
+        tenthPercentage: Number(savedData.eligibility?.tenthPercentage || 0),
+        twelfthPercentage:Number(savedData.eligibility?.twelfthPercentage || 0)
+      },
+      sessionExam: {
+        isSession: savedData.sessionExam?.isSession || false,
+        startDate: savedData.sessionExam?.startDate || null,
+        endDate: savedData.sessionExam?.endDate || null,
+        startTime: savedData.sessionExam?.startTime || null,
+        endTime: savedData.sessionExam?.endTime || null
+      },
+      createdBy
+    };
+
+    try {
+      const res = await axiosInstance.post("test", payload);
+
+      if (!res) throw new Error();
+      alert("All questions submitted successfully!");
+      setQuestionsList([]);
+      navigate('/myTest')
+    } catch {
+      alert("Failed to submit questions!");
+    }
+  };
+
   return (
     <div className="p-6 space-y-8 max-w-4xl mx-auto">
-
-      {/* Display saved questions */}
+      {/* Preview of added questions */}
       {questionsList.length > 0 && (
         <div className="mb-8">
           <h2 className="font-bold text-lg mb-4">Added Questions</h2>
           <ul className="space-y-4">
             {questionsList.map((q, idx) => (
               <li key={idx} className="p-4 border rounded bg-gray-50">
-                <div className="font-semibold mb-2" dangerouslySetInnerHTML={{ __html: q.question }} />
-                <div className="text-sm text-gray-600 mb-1">Type: {q.answerType}</div>
+                <div
+                  className="font-semibold mb-2"
+                  dangerouslySetInnerHTML={{ __html: q.question }}
+                />
+                <div className="text-sm text-gray-600 mb-1">
+                  Type: {q.answerType} | Difficulty: <b>{q.difficulty}</b>
+                </div>
                 <div>
-                  {q.answers && q.answers.length > 0 && (
+                  {q.answers?.length > 0 && (
                     <ul className="list-disc ml-6">
                       {q.answers.map((a, i) => (
-                        <li key={i}>
-                          <span dangerouslySetInnerHTML={{ __html: a.text }} /> {a.correct ? <b>(Correct)</b> : ''}
+                        <li key={`${a.text}-${i}`}>
+                          <span dangerouslySetInnerHTML={{ __html: a.text }} />{" "}
+                          {a.correct ? <b>(Correct)</b> : ""}
                         </li>
                       ))}
                     </ul>
+                  )}
+                  {q.answerType === "short" && q.shortAnswer && (
+                    <div>
+                      <b>Expected answer:</b> {q.shortAnswer}
+                    </div>
                   )}
                 </div>
               </li>
@@ -117,20 +214,25 @@ const [shuffle, setShuffle] = useState(false);
           </ul>
         </div>
       )}
-      {/* Question */}
+
+      {/* Question editor */}
       <div>
-        <label className="block font-semibold text-gray-700 mb-2">QUESTION</label>
+        <label className="block font-semibold text-gray-700 mb-2">
+          QUESTION
+        </label>
         <ReactQuill
           value={question}
           onChange={setQuestion}
-          modules={{ toolbar: fullToolbarOptions }}
+          modules={{ toolbar: toolbarOptions }}
           className="bg-white rounded-md shadow"
         />
       </div>
 
       {/* Answer Type */}
       <div className="w-60">
-        <label className="block font-semibold text-gray-700 mb-2">Answer type</label>
+        <label className="block font-semibold text-gray-700 mb-2">
+          Answer type
+        </label>
         <select
           value={answerType}
           onChange={(e) => handleAnswerTypeChange(e.target.value)}
@@ -143,34 +245,63 @@ const [shuffle, setShuffle] = useState(false);
         </select>
       </div>
 
-      {/* Answer Options */}
-      {answerType !== 'short' && (
+      {/* Difficulty */}
+      <div className="w-60">
+        <label className="block font-semibold text-gray-700 mb-2">
+          Difficulty
+        </label>
+        <select
+          value={difficulty}
+          onChange={(e) => setDifficulty(e.target.value)}
+          className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+        >
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </div>
+
+      {/* Answers */}
+      {answerType !== "short" && (
         <div>
-          <label className="block font-semibold text-gray-700 mb-2">Answers</label>
+          <label className="block font-semibold text-gray-700 mb-2">
+            Answers
+          </label>
           <div className="space-y-4">
             {answers.map((ans, index) => (
               <div key={index} className="flex items-start gap-2">
                 <input
-                  type={answerType === 'multiple' ? 'checkbox' : 'radio'}
+                  type={answerType === "multiple" ? "checkbox" : "radio"}
                   checked={ans.correct}
                   onChange={() => handleCheckboxChange(index)}
                   className="mt-2"
+                  name="answer-choice"
                 />
                 <div className="flex-1">
-                  <ReactQuill
-                    value={ans.text}
-                    onChange={(value) => handleAnswerChange(value, index)}
-                    modules={{ toolbar: fullToolbarOptions }}
-                    className="bg-white rounded-md shadow"
-                  />
+                  {answerType === "truefalse" ? (
+                    <input
+                      type="text"
+                      value={ans.text}
+                      readOnly
+                      className="w-full border border-gray-300 rounded-md px-4 py-2 shadow bg-gray-100"
+                    />
+                  ) : (
+                    <ReactQuill
+                      value={ans.text}
+                      onChange={(value) => handleAnswerChange(value, index)}
+                      modules={{ toolbar: toolbarOptions }}
+                      className="bg-white rounded-md shadow"
+                    />
+                  )}
                 </div>
               </div>
             ))}
           </div>
-          {(answerType === 'single' || answerType === 'multiple') && (
+          {(answerType === "single" || answerType === "multiple") && (
             <button
               onClick={addAnswer}
               className="mt-4 px-4 py-2 border border-black text-black hover:bg-black hover:text-white rounded-md"
+              type="button"
             >
               Add answer
             </button>
@@ -178,19 +309,24 @@ const [shuffle, setShuffle] = useState(false);
         </div>
       )}
 
-      {/* Short Answer */}
-      {answerType === 'short' && (
+      {/* Short answer */}
+      {answerType === "short" && (
         <div>
-          <label className="block font-semibold text-gray-700 mb-2">Expected answer (optional)</label>
+          <label className="block font-semibold text-gray-700 mb-2">
+            Expected answer (optional)
+          </label>
           <input
             type="text"
             className="w-full border border-gray-300 rounded-md px-4 py-2 shadow"
             placeholder="Short answer (optional)"
+            value={shortAnswer}
+            onChange={(e) => setShortAnswer(e.target.value)}
           />
         </div>
       )}
 
-      <div className="flex gap-1 pt-2">
+      {/* Action Buttons */}
+      <div className="flex gap-4 pt-4">
         <button
           type="button"
           className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded"
@@ -198,112 +334,26 @@ const [shuffle, setShuffle] = useState(false);
         >
           Add Question
         </button>
-      
-      </div>
 
-      {/* Question Order*/}
-
-      <div className="space-y-4">
-        <h3 className="font-semibold text-lg text-gray-800">Question order</h3>
-      
-
-      {/* Question Order*/}
-      <div className="space-y-4">
-        <h2 className="font-semibold text-lg text-gray-800">Select one of the options:</h2>
-        <div className="flex flex-col gap-2 mt-2">
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="shuffle"
-              value="false"
-              checked={!shuffle}
-              onChange={() => setShuffle(false)}
-              className="mr-2"
-            />
-            Fixed questions and answers order as defined in Questions manager
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="shuffle"
-              value="true"
-              checked={shuffle}
-              onChange={() => setShuffle(true)}
-              className="mr-2"
-            />
-            Random questions and answers order
-          </label>
-        </div>
-      </div>
-
-      </div>
-      {/* Score Settings */}
-      <div className="space-y-4">
-        <h3 className="font-semibold text-lg text-gray-800">Score settings</h3>
-        <p className="text-sm text-gray-600">Define the score for a correct answer. Negative points for incorrect answers can also be assigned. If you don’t want to do so, enter 0 (zero).</p>
-        <div className="flex gap-6 max-w-xl">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Points for correct answer</label>
-            <input
-              type="number"
-              value={scoreCorrect}
-              onChange={(e) => setScoreCorrect(e.target.value)}
-              className="border border-gray-300 rounded-md px-4 py-2 w-40"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Points for incorrect answer</label>
-            <input
-              type="number"
-              value={scoreIncorrect}
-              onChange={(e) => setScoreIncorrect(e.target.value)}
-              className="border border-gray-300 rounded-md px-4 py-2 w-40"
-            />
-            <p className="text-xs text-red-500 mt-1">Warning! Number of points must be negative or zero. E.g., -1</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Toggle Options */}
-      <div className="space-y-4">
-        <h3 className="font-semibold text-lg text-gray-800">Display maximum possible score for this question</h3>
-        <div className="space-y-3">
-          <Toggle label="Display maximum possible score for this question" value={showMaxScore} onChange={setShowMaxScore} />
-          <Toggle label="Force respondent to answer this question when displayed the first time" value={forceAnswer} onChange={setForceAnswer} />
-          <Toggle label="Terminate the test if the answer to this question is incorrect" value={terminateOnWrong} onChange={setTerminateOnWrong} />
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex gap-4 pt-4">
-        <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded">save</button>
         <button
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded"
-          onClick={() => navigate("/GradingCriteria")}
+          type="button"
+          className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded"
+          onClick={handleSubmitAllQuestions}
         >
-          save and add next
+          Submit All Questions
         </button>
-        <button className="border border-gray-400 text-gray-700 font-bold py-2 px-6 rounded hover:bg-gray-100">cancel</button>
+
+        <button
+          className="border border-gray-400 text-gray-700 font-bold py-2 px-6 rounded hover:bg-gray-100"
+          onClick={() => {
+            setQuestionsList([]);
+          }}
+        >
+          Cancel
+        </button>
       </div>
     </div>
   );
 };
-
-// Reusable Toggle Component
-const Toggle = ({ label, value, onChange }) => (
-  <div className="flex items-center justify-between max-w-2xl">
-    <span className="text-sm text-gray-700">{label}</span>
-    <label className="relative inline-flex items-center cursor-pointer">
-      <input
-        type="checkbox"
-        checked={value}
-        onChange={(e) => onChange(e.target.checked)}
-        className="sr-only peer"
-      />
-      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:bg-green-500 transition-all"></div>
-      <span className="sr-only">{label}</span>
-    </label>
-  </div>
-);
 
 export default QuestionForm;
