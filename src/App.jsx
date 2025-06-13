@@ -19,6 +19,10 @@ import CodingSection from './User/Components/CodingSection';
 import InterviewInvitation from './User/Components/InterviewInvitation';
 import FaceDetection from './User/Components/FaceDetection';
 import { SelectionProcessStages } from './User/Components/SelectionProcessStages';
+
+
+
+
 import MyTest from './Admin/Pages/MyTest';
 import Respondents from './Admin/Pages/Respondents';
 import StudentForm from './Admin/Pages/StudentForm';
@@ -27,7 +31,6 @@ import MyAccount from './Admin/Pages/MyAccount';
 import Layout from './Admin/Components/Layout';
 import MonacoEditor from './User/Components/MonacoCodeEditer';
 import ThankYou from './User/Components/ThankYou';
-
 
 import EmailForm from './Admin/Pages/EmailForm';
 import Result from './Admin/Pages/Result';
@@ -100,6 +103,10 @@ function App() {
         {/* User Routes */}
         <Route path="/student-dashboard" element={<StudentDashboard />} />
         <Route path="/face-detection" element={<FaceDetectionWrapper />} />
+       
+        
+        
+
          {/* <Route path="/face-recogition" element={<FaceRecognition />} /> */}
         <Route path="/audio-detection" element={<AudioDetectionWrapper />} />
         <Route path="/Instructions" element={<Instructions />} />
@@ -108,6 +115,9 @@ function App() {
         <Route path="/interview-invitation" element={<InterviewInvitationWrapper />} />
         <Route path="/face-detect" element={<FaceDetection />} />
         <Route path="/selection-process" element={<SelectionProcessStages />} />
+        
+        
+        
 
         {/* Admin Routes (wrapped in layout) */}
         <Route element={<Layout />}>
