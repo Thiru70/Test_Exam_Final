@@ -19,47 +19,6 @@ const Result = () => {
   useEffect(()=> {
     fetchAllTests()
   },[])
-    const mockData = [
-  {
-    round: 'Round 1',
-    assessments: [
-      {
-        status: 'Active',
-        date: '2025-03-10',
-        title: 'Aptitude test',
-        description: 'Description',
-      },
-      {
-        status: 'Active',
-        date: '2025-03-25',
-        title: 'Aptitude test',
-        description: 'Description',
-      },
-    ],
-  },
-  {
-    round: 'Round 2',
-    assessments: [
-      {
-        status: 'Active',
-        date: '2025-03-10',
-        title: 'Aptitude test',
-        description: 'Description',
-      },
-    ],
-  },
-  {
-    round: 'Interview',
-    assessments: [
-      {
-        status: 'Active',
-        date: '2025-03-10',
-        title: 'Aptitude test',
-        description: 'Description',
-      },
-    ],
-  },
-];
 
 
  const getStatusStyles = (status) => {
@@ -77,30 +36,35 @@ const Result = () => {
 
   return (
     <div className="p-6 space-y-8">
-      {mockData.map((round, idx) => (
-        <div key={idx}>
-          <h3 className="text-sm font-medium text-gray-800 mb-3">{round.round}</h3>
+      {testData.map((test) => (
+        <div key={test.testId}>
+          <h3 className="text-sm font-medium text-gray-800 mb-3">{test.type ==='MCQ'?'Round 1':test.type==='coding' ?'Round 2':'Interview'}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {round.assessments.map((assessment, i) => (
               <div
-                key={i}
                 className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-2 shadow-sm cursor-pointer"
-                onClick={() => navigate('/resultTable')} 
               >
                 <div className="flex justify-between items-center">
-                  <span className="text-green-600 text-xs border border-green-400 px-2 py-1 rounded-md">
-                    {assessment.status}
+                  <span className={`text-xs border px-2 py-1 rounded-md ${
+                    new Date(test.sessionExam.endDate) < Date.now()
+                      ? "text-[#D91919] border-[#F10A0A]"
+                      : "text-[#34C759] border-[#34C759]"
+                  }` }>
+                  {new Date(test.sessionExam.endDate) < Date.now() ?"ended":"active"}
                   </span>
                   <span className="text-xs text-gray-500">
-                    Created - {assessment.date}
+                    Created - {new Date(test.timestamp).toLocaleDateString()}
                   </span>
                 </div>
                 <div className="text-sm font-medium text-gray-800">
-                  {assessment.title}
+                  {test.testName}
                 </div>
-                <div className="text-sm text-gray-600">{assessment.description}</div>
+                <div className="text-sm text-gray-600">{test.type}</div>
+                <div className='text-end ' onClick={() => navigate('/resultTable',{state: { testId : test.testId, testName: test.testName}})} >
+                  <button className=' border text-blue-500 border-blue-400 px-4 py-0.5 rounded-full '>View</button>
+                
+                </div>
+
               </div>
-            ))}
           </div>
         </div>
       ))}

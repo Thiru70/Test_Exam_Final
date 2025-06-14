@@ -3,9 +3,8 @@ import { Camera, Flag, Clock, User, Loader2, Maximize, AlertTriangle, Eye, EyeOf
 
 const AptitudeTest = ({ onNavigateToCoding }) => {
     const BASE_URL = 'https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev';
-    // const TEST_ID = '01JXCQEQGN53SBW8FY4KKQXXPC';
     const TEST_ID = '01JXM85T7WHN84DB003BPPMHYH'
-    const USER_ID = 'user123';
+    const USER_ID = 'User123';
     
     // Generate unique test session ID for this attempt
     const TEST_SESSION_KEY = `test_session_${TEST_ID}_${USER_ID}`;

@@ -87,12 +87,12 @@ const MyTest = () => {
                 <span
                   className={`px-2 py-1 text-xs font-medium rounded border 
                   ${
-                    test.statusType === "danger"
+                    new Date(test.sessionExam.endDate) < Date.now()
                       ? " text-[#D91919] border-[#F10A0A]"
                       : " text-[#34C759] border-[#34C759]"
                   }`}
                 >
-                  {test.status || "active"}
+                  {new Date(test.sessionExam.endDate) < Date.now() ?"ended":"active"}
                 </span>
                 <span className="text-sm text-gray-500">
                   Created: {new Date(test.timestamp).toLocaleDateString()}

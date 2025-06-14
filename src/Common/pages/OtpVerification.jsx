@@ -75,9 +75,10 @@ fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/api/submit-otp
 })
   .then(res => res.json())
   .then(data => {
+    console.log(data,"data")
     setLoading(false);
-    if (data.success) {
-      navigate(`/complete-profile?type=${userType}`);
+    if (data) {
+      navigate(`/information`);
     } else {
       setError(data.message || 'Invalid verification code.');
     }
