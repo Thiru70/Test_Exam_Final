@@ -1,8 +1,24 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
+import axiosInstance from '../../utils/axiosInstance';
 
 const Result = () => {
+  const [testData, setTestData] = useState([]);
   const navigate = useNavigate();
+  const email = localStorage.getItem('otpEmail')
+
+  const fetchAllTests = async () => {
+    const response = await axiosInstance.get(
+      `/tests?createdBy=${email}`
+    );
+    setTestData(response.data);
+    console.log(response.data, "response");
+  };
+
+
+  useEffect(()=> {
+    fetchAllTests()
+  },[])
     const mockData = [
   {
     round: 'Round 1',

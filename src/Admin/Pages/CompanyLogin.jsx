@@ -5,7 +5,7 @@ import axiosInstance from "../../utils/axiosInstance";
 
 export default function CompanyLoginForm() {
   const [formData, setFormData] = useState({
-    employee_id: "",
+    email: "",
     password: "",
   });
   const navigate = useNavigate()
@@ -60,8 +60,8 @@ export default function CompanyLoginForm() {
               <input
                 className="w-[500px] border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 placeholder="Employee ID"
-                name ="employee_id"
-                value={formData.employee_id}
+                name ="email"
+                value={formData.email}
                 onChange={handleInputChange}
               />
             </div>
