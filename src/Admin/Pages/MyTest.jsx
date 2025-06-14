@@ -104,7 +104,7 @@ const MyTest = () => {
               </div>
 
               <div className="flex justify-end gap-5">
-                <Edit  />
+                <Edit onClick={() => navigate(`/UpdateTest/${test.testId}`)} className="cursor-pointer" />
                 <Trash onClick={()=> handleTestDelete(test.testId)} />
               </div>
             </div>

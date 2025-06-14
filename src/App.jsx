@@ -46,7 +46,7 @@ import SetCriteria from './Admin/Pages/SetCriteria';
 import EligibilityCriteriaForm from './Admin/Pages/SetCriteria';
 import InformationForm from './Admin/Pages/Information';
 import GradingCriteria from './Admin/Pages/GradingCriteria';
-
+import UpdateTest from './Admin/Pages/UpdateTest';
 // import FaceRecognition from './User/Components/FaceRecognition';
 
 const FaceDetectionWrapper = () => {
@@ -126,6 +126,8 @@ function App() {
           <Route path="/MailDashborad" element={<MailDashboard />} />
           <Route path="/SetCriteria" element={<EligibilityCriteriaForm />} />
           <Route path="/GradingCriteria" element={<GradingCriteria />} />
+          <Route path="/UpdateTest/:testId" element={<UpdateTest />} />
+          <Route path="/UpdateTest" element={<UpdateTest />} />
         </Route>
 
         {/* Fallback Route */}
