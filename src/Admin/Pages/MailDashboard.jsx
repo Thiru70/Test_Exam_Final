@@ -1,95 +1,95 @@
-import React from "react";
+import React, { useState } from "react";
 import { FaEdit, FaSave, FaTrash, FaPaperPlane, FaPlus } from "react-icons/fa";
 
 const MailDashboard = () => {
-  const mails = [
-    { id: 1, email: "Khush235344sherdvrvrv@gmail.com", status: "Selected" },
-    { id: 2, email: "Khush235344sherdvrvrv@gmail.com", status: "Selected" },
-    { id: 3, email: "Khush235344sherdvrvrv@gmail.com", status: "Not Selected" },
-    { id: 4, email: "Khush235344sherdvrvrv@gmail.com", status: "Selected" },
+  const [filterOpen, setFilterOpen] = useState(false);
+
+  const emails = [
+    { id: 1, email: "khush235344sherdvrvrv@gmail.com", status: "Selected" },
+    { id: 2, email: "khush235344sherdvrvrv@gmail.com", status: "Selected" },
+    { id: 3, email: "khush235344sherdvrvrv@gmail.com", status: "Not Selected" },
+    { id: 4, email: "khush235344sherdvrvrv@gmail.com", status: "Selected" },
   ];
 
   const getStatusIcon = (status) => {
-    if (status === "Selected")
-      return <span className="text-green-500">🟢</span>;
-    return <span className="text-red-500">🔴</span>;
+    return status === "Selected" ? (
+      <span className="text-green-500 text-xl">✅</span>
+    ) : (
+      <span className="text-orange-500 text-xl">🟥</span>
+    );
   };
 
   return (
-    <div className="min-h-screen bg-blue-300 py-10 px-4">
-      <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold text-blue-700">Mail Dashboard</h2>
+    <div className="bg-[#00a9dc] min-h-screen p-6">
+      <div className="bg-white rounded-lg shadow-lg p-6 max-w-6xl mx-auto">
+        <h2 className="text-2xl font-bold text-[#00a9dc] mb-6">Mail Dashboard</h2>
 
-          <div className="flex space-x-2">
+        {/* Top Bar */}
+        <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
+          {/* Left: Buttons */}
+          <div className="flex gap-2 flex-wrap">
+            <button className="bg-gray-50 hover:bg-gray-300 px-4 py-1 rounded-full">Select</button>
+            <button className="bg-gray-50 hover:bg-gray-300 px-4 py-1 rounded-full">Refresh</button>
+            <button className="bg-gray-50 hover:bg-gray-300 px-4 py-1 rounded-full">Sent</button>
+            <button className="bg-gray-50 hover:bg-gray-300 px-4 py-1 rounded-full">Received</button>
+            <button className="bg-[#00a9dc] hover:bg-[#008cb7] text-white px-4 py-1 rounded-full">Send</button>
+          </div>
+
+          {/* Right: Search, Filter, Add Button */}
+          <div className="flex items-center gap-3 flex-wrap">
             <input
               type="text"
-              placeholder="Email Address"
-              className="border rounded-l px-3 py-1"
+              placeholder="Email Address   gmail.com"
+              className="px-3 py-1 border rounded"
             />
-            <span className="bg-gray-100 border px-2 py-1 text-sm">gmail.com</span>
-            <button className="bg-blue-500 text-white px-4 py-1 rounded-r hover:bg-blue-600">
-              Search
-            </button>
-          </div>
-        </div>
+            <button className="bg-[#00a9dc] text-white px-4 py-1 rounded">Search</button>
 
-        {/* Action buttons */}
-        <div className="flex justify-between items-center mb-4">
-          <div className="space-x-2">
-            <button className="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">Select</button>
-            <button className="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">Refresh</button>
-            <button className="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">Send</button>
-            <button className="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">Received</button>
-          </div>
-          <div className="relative">
-            <button className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">
-              Filter ⌄
-            </button>
-            {/* Dropdown Example (static) */}
-            <div className="absolute bg-white shadow border rounded mt-1 w-32 text-sm text-gray-700">
-              <div className="px-3 py-1 hover:bg-gray-100">All</div>
-              <div className="px-3 py-1 hover:bg-gray-100">Selected</div>
-              <div className="px-3 py-1 hover:bg-gray-100">Not Selected</div>
-            </div>
-          </div>
-          <button className="bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600">
-            <FaPlus />
-          </button>
-        </div>
-
-        {/* Mail List Table */}
-        <div className="divide-y">
-          {mails.map((mail) => (
-            <div
-              key={mail.id}
-              className="flex justify-between items-center py-3 px-2 hover:bg-gray-50"
-            >
-              <div className="flex items-center gap-2">
-                {mail.status === "Selected" ? (
-                  <span className="text-green-500 text-xl">✅</span>
-                ) : (
-                  <span className="text-orange-500 text-xl">☑️</span>
-                )}
-                <span>{mail.email}</span>
-              </div>
-              <div className="flex items-center gap-4">
-                <span
-                  className={`text-sm font-medium ${
-                    mail.status === "Selected"
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {mail.status}
-                </span>
-                <div className="flex gap-2 text-gray-700">
-                  <button title="Edit"><FaEdit /></button>
-                  <button title="Save"><FaSave /></button>
-                  <button title="Delete"><FaTrash /></button>
-                  <button title="Send"><FaPaperPlane /></button>
+            {/* Filter Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setFilterOpen(!filterOpen)}
+                className="bg-[#00a9dc] text-white px-4 py-1 rounded"
+              >
+                Filter ⌄
+              </button>
+              {filterOpen && (
+                <div className="absolute z-10 right-0 mt-1 bg-white border rounded shadow-md w-32">
+                  <button className="w-full px-4 py-2 hover:bg-gray-100 text-left">All</button>
+                  <button className="w-full px-4 py-2 hover:bg-gray-100 text-left">Selected</button>
+                  <button className="w-full px-4 py-2 hover:bg-gray-100 text-left">Not Selected</button>
                 </div>
+              )}
+            </div>
+
+            {/* ✅ Add New Mail Button */}
+            <button className="flex items-center gap-2 bg-[#00a9dc] text-white px-4 py-1 rounded-full hover:bg-[#008cb7]">
+              <FaPlus className="text-sm" />
+              Add New Mail
+            </button>
+          </div>
+        </div>
+           {/* Email List Title */}
+               <h3 className="text-xl font-bold text-cyan-700 mt-8 mb-3">Candidate Mail</h3>
+
+        {/* Email List */}
+        <div className="space-y-3">
+  {emails.map((item) => (
+    <div
+      key={item.id}
+      className="flex justify-between items-center border rounded px-4 py-2 shadow-sm hover:bg-gray-50"
+    >
+      <div className="flex items-center gap-3">
+        {getStatusIcon(item.status)}
+        <div className="font-medium">
+          {item.email} <span className="text-gray-500">   {item.status}  </span>
+        </div>
+      </div>
+
+              <div className="flex gap-3 text-gray-600 text-lg">
+                <FaEdit className="hover:text-blue-500 cursor-pointer" title="Edit" />
+                <FaSave className="hover:text-green-500 cursor-pointer" title="Save" />
+                <FaTrash className="hover:text-red-500 cursor-pointer" title="Delete" />
+                <FaPaperPlane className="hover:text-purple-500 cursor-pointer" title="Send" />
               </div>
             </div>
           ))}

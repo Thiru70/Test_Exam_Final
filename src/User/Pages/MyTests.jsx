@@ -15,6 +15,7 @@ const MyTests = () => {
           throw new Error('Failed to fetch tests');
         }
         const data = await response.json();
+        console.log(data,"data")
         setTests(data.tests || []);
       } catch (err) {
         setError(err.message);
