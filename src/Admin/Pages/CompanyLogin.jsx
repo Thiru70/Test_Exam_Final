@@ -24,8 +24,8 @@ export default function CompanyLoginForm() {
     try {
       const response = await axiosInstance.post('/company/login', formData);
       console.log('Form submitted:', response.data);
-      window.alert('Company registered successfully')
       navigate('/myTest')
+      window.alert('Company registered successfully')
     } catch (err) {
       console.error('Submission error:', err);
       window.alert(err.response.data.error || err)
