@@ -1,8 +1,11 @@
 import React,  { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosInstance';
+import { ToastContainer,toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"
 
 const UpdateTest = () => {
+  const navigate = useNavigate()
   const { testId } = useParams();
   const [form, setForm] = useState({
     testName: 'Aptitude Test',
@@ -70,14 +73,16 @@ const UpdateTest = () => {
     e.preventDefault();
     try {
       await axiosInstance.put(`/test/${testId}`, form);
-      setMessage('Test updated successfully!');
+      toast.success('Test updated successfully!');
+      navigate('/myTest')
     } catch (error) {
-      setMessage('Failed to update test.');
+      toast.error('Failed to update test.');
     }
   };
 
   return (
     <div className="max-w-xl mx-auto mt-10 p-8 bg-white rounded-lg shadow-md">
+      <ToastContainer />
       <h2 className="text-2xl font-bold mb-8 text-center">Update Test</h2>
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>

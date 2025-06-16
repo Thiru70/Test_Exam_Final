@@ -15,6 +15,7 @@ const TestSheetReview = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { result, testName } = location.state || {};
+  console.log(result,"result")
     const testData = {
     testName: 'Aptitude test',
     respondent: 'Wade Warren',

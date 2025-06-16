@@ -5,7 +5,7 @@ import axiosInstance from '../../utils/axiosInstance';
 const Result = () => {
   const [testData, setTestData] = useState([]);
   const navigate = useNavigate();
-  const email = localStorage.getItem('otpEmail')
+  const email = localStorage.getItem('adminEmail')
 
   const fetchAllTests = async () => {
     const response = await axiosInstance.get(

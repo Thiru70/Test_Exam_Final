@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { IoIosMenu } from "react-icons/io";
 import axiosInstance from "../../utils/axiosInstance";
+import { Trash } from "lucide-react";
 
 const CandidateList = () => {
   const [selected, setSelected] = useState([]);
@@ -52,18 +53,13 @@ const CandidateList = () => {
             <th className="text-left p-2">12th</th>
             <th className="text-center p-2">Graduation</th>
             <th className="text-left p-2">Gmail</th>
+            <th className="text-left p-2">Delete</th>
           </tr>
         </thead>
         <tbody>
           {currentCandidates.map((candidate, index) => (
             <tr key={candidate.id} className="border-b hover:bg-gray-50">
               <td className="p-2 flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={selected.includes(candidate.id)}
-                  onChange={() => toggleSelect(candidate.id)}
-                  className="cursor-pointer"
-                />
                 <span>{String(index + 1).padStart(2, "0")}.</span>
               </td>
               <td className="p-2">{candidate.full_name}</td>

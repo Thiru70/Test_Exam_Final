@@ -1,7 +1,10 @@
-import { Eye, EyeOff } from "lucide-react";
+import { Cookie, Eye, EyeOff } from "lucide-react";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
+import Cookies from 'js-cookie';
+import { ToastContainer,toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"
 
 export default function CompanyLoginForm() {
   const [formData, setFormData] = useState({
@@ -21,7 +24,7 @@ export default function CompanyLoginForm() {
     }
     if (!formData.password) {
       newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
+    } else if (formData.password.length < 0) {
       newErrors.password = "Password must be at least 6 characters";
     }
     setErrors(newErrors);
@@ -45,17 +48,21 @@ export default function CompanyLoginForm() {
     if (!validate()) return;
     try {
       const response = await axiosInstance.post("/company/login", formData);
-      console.log("Form submitted:", response.data);
+      console.log("Form submitted:", response.data)
+      localStorage.setItem('adminEmail',response.data.email)
+      Cookies.set('token',response.data.token);
       navigate("/myTest");
-      window.alert("Company registered successfully");
+      toast.success("Company logged in successfully!");
     } catch (err) {
       console.error("Submission error:", err);
-      window.alert(err.response?.data?.error || err.message || err);
+      toast.error(err.response?.data?.error || err.message || err);
     }
   };
 
+  
   return (
     <div className="min-h-screen flex">
+      <ToastContainer />
       <div className="hidden md:flex flex-1 bg-blue-600 items-center justify-center">
         <img
           src="./exam-sheet.png"
@@ -78,10 +85,11 @@ export default function CompanyLoginForm() {
           <h2 className="text-2xl font-bold mb-20">Exam Portal</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm mb-1">Employee ID</label>
+              <label className="block text-sm mb-1">Email</label>
               <input
+                type = "email"
                 className="w-[500px] border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                placeholder="Employee ID"
+                placeholder="Email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}

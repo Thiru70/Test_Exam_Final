@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import AuthCard from '../components/AuthCard';
+import { ToastContainer,toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"
 
 const EmailVerification = () => {
   const [email, setEmail] = useState('');
@@ -16,7 +18,8 @@ const EmailVerification = () => {
 
     try {
       // Call your backend API to send OTP email
-      const response = await fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/api/verify-email', {  // Adjust the URL if needed
+      toast.success('Otp Sent Successfully!')
+      const response = await fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/api/verify-email', {  
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -29,22 +32,23 @@ const EmailVerification = () => {
       if (response.ok) {
         // OTP sent successfully, don't store OTP in frontend for security
         // Store email so you know which email is verifying
-        localStorage.setItem('otpEmail', email);
+        
         setLoading(false);
         navigate(`/otp-verification?email=${encodeURIComponent(email)}&type=${userType}`);
       } else {
         setLoading(false);
-        alert(data.message || 'Failed to send verification code.');
+        toast.error(data.message || 'Failed to send verification code.');
       }
     } catch (error) {
       setLoading(false);
-      alert('Error sending verification code. Please try again.');
+      toast.error('Error occured while sending verification code. Please try again.');
       console.error(error);
     }
   };
 
   return (
     <div className="flex w-full min-h-screen">
+      <ToastContainer />
       <Sidebar />
 
       <AuthCard title="Email Verification" subtitle="Please enter your email address to receive a verification code.">

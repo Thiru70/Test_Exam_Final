@@ -1,29 +1,43 @@
 import React, { useState, useEffect } from "react";
-import { Icon } from "@iconify-icon/react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axiosInstance from "../../utils/axiosInstance";
+import Cookies from 'js-cookie';
 
 const Navbar = ({ toggleSidebar }) => {
-  
+  const navigate = useNavigate()
+  const email = localStorage.getItem('adminEmail')
+  const [openProfile, setOpenProfile] = useState(false)
+  const [profileIcon,setProfileIcon] = useState(false)
 
+  const fetchProfileData = async () => {
+    const response = await axiosInstance.get(`/company/profile/${email}`);
+    setProfileIcon(response.data.profile.first_name.split('')[0]);
+  };
+
+  const handleLogout = () => {
+    Cookies.remove('token')
+    localStorage.clear()
+
+
+  }
+
+  useEffect(() => {
+    fetchProfileData();
+  }, [email]);
   return (
-      <header className="flex items-center justify-between px-6 py-4 bg-white border-b sticky top-0 z-10">
-        <div className="flex items-center gap-4">
-          <h2 className="text-lg font-semibold text-gray-800 hidden sm:block">My Tests</h2>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-full sm:w-64 px-4 py-2 pl-10 border rounded-lg bg-gray-50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100"
-            />
-            <Icon
-              icon="mdi:magnify"
-              className="absolute left-3 top-2.5 text-gray-400"
-              width={20}
-            />
-          </div>
-        </div>
-      </header>
-    );
+    <header onClick={()=>setOpenProfile(!openProfile)} className="flex items-center justify-end px-6 py-4 bg-white border-b sticky top-0 z-10">
+      <h1 className="bg-black text-white font-bold rounded-full w-10 h-10 flex justify-center items-center text-xl">
+        {profileIcon || "U"}
+      </h1>
+      {
+        openProfile ? <div className="w-32 absolute top-14 bg-white z-40 shadow-2xl flex flex-col gap-2 p-2">
+        <Link  to="/account" className="px-2 hover:bg-zinc-200">My Account</Link>
+        <Link onClick={handleLogout} to="/home" className="px-2 hover:bg-zinc-200">Logout</Link>
+        </div> : null
+      }
+
+    </header>
+  );
 };
 
 export default Navbar;

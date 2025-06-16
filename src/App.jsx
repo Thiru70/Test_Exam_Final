@@ -124,7 +124,7 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/myTest" element={<MyTest />} />
           <Route path="/respondents" element={<Respondents />} />
-          <Route path="/database" element={<Result />} />
+          <Route path="/results" element={<Result />} />
           <Route path="/StudentForm" element={<StudentForm/>} />
           <Route path="/account" element={<MyAccount/>} />
           <Route path="/emailForm" element={<EmailForm />} />
@@ -132,10 +132,10 @@ function App() {
           <Route path="/testReview" element={<TestSheetReview />} />
           <Route path="/testconfiguration" element={<Testconfiguration />} />
           <Route path="/questionSet" element={<QuestionSet />} />
-          <Route path="/student-form" element={<StudentTable />} />
+          <Route path="/candidateList" element={<StudentTable />} />
           <Route path="/studentEmail-form" element={<StudentEmailForm />} />
           <Route path="/Emailsuccess" element={<Emailsuccess />} />
-          <Route path="/candidateList" element={<CandidateList />} />
+          {/* <Route path="/candidateList" element={<CandidateList />} /> */}
           <Route path="/MailDashborad" element={<MailDashboard />} />
           <Route path="/SetCriteria" element={<EligibilityCriteriaForm />} />
           <Route path="/GradingCriteria" element={<GradingCriteria />} />

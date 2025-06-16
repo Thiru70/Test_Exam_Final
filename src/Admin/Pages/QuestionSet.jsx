@@ -139,7 +139,7 @@ const QuestionForm = () => {
       alert("Please add at least one question.");
       return;
     }
-    const createdBy = localStorage.getItem('otpEmail')
+    const createdBy = localStorage.getItem('adminEmail')
     const savedData = JSON.parse(localStorage.getItem("formData"));
     const formattedQuestions = questionsList.map(formatQuestionForAPI);
 
