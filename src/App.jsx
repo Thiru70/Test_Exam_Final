@@ -19,6 +19,10 @@ import CodingSection from './User/Components/CodingSection';
 import InterviewInvitation from './User/Components/InterviewInvitation';
 import FaceDetection from './User/Components/FaceDetection';
 import { SelectionProcessStages } from './User/Components/SelectionProcessStages';
+
+
+
+
 import MyTest from './Admin/Pages/MyTest';
 import Respondents from './Admin/Pages/Respondents';
 import StudentForm from './Admin/Pages/StudentForm';
@@ -27,7 +31,6 @@ import MyAccount from './Admin/Pages/MyAccount';
 import Layout from './Admin/Components/Layout';
 import MonacoEditor from './User/Components/MonacoCodeEditer';
 import ThankYou from './User/Components/ThankYou';
-
 
 import EmailForm from './Admin/Pages/EmailForm';
 import Result from './Admin/Pages/Result';
@@ -46,6 +49,8 @@ import SetCriteria from './Admin/Pages/SetCriteria';
 import EligibilityCriteriaForm from './Admin/Pages/SetCriteria';
 import InformationForm from './Admin/Pages/Information';
 import GradingCriteria from './Admin/Pages/GradingCriteria';
+import UpdateTest from './Admin/Pages/UpdateTest';
+import CompanyLoginForm from './Admin/Pages/CompanyLogin';
 
 // import FaceRecognition from './User/Components/FaceRecognition';
 
@@ -87,6 +92,7 @@ function App() {
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/company-login" element={<CompanyLoginForm />} />
         <Route path="/information" element={<InformationForm />} />
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/otp-verification" element={<OtpVerification />} />
@@ -98,6 +104,10 @@ function App() {
         {/* User Routes */}
         <Route path="/student-dashboard" element={<StudentDashboard />} />
         <Route path="/face-detection" element={<FaceDetectionWrapper />} />
+       
+        
+        
+
          {/* <Route path="/face-recogition" element={<FaceRecognition />} /> */}
         <Route path="/audio-detection" element={<AudioDetectionWrapper />} />
         <Route path="/Instructions" element={<Instructions />} />
@@ -106,26 +116,31 @@ function App() {
         <Route path="/interview-invitation" element={<InterviewInvitationWrapper />} />
         <Route path="/face-detect" element={<FaceDetection />} />
         <Route path="/selection-process" element={<SelectionProcessStages />} />
+        
+        
+        
 
         {/* Admin Routes (wrapped in layout) */}
         <Route element={<Layout />}>
           <Route path="/myTest" element={<MyTest />} />
           <Route path="/respondents" element={<Respondents />} />
-          <Route path="/database" element={<Result />} />
+          <Route path="/results" element={<Result />} />
           <Route path="/StudentForm" element={<StudentForm/>} />
-          <Route path="/MyAccount" element={<MyAccount/>} />
+          <Route path="/account" element={<MyAccount/>} />
           <Route path="/emailForm" element={<EmailForm />} />
           <Route path="/resultTable" element={<ResultTable />} />
           <Route path="/testReview" element={<TestSheetReview />} />
           <Route path="/testconfiguration" element={<Testconfiguration />} />
           <Route path="/questionSet" element={<QuestionSet />} />
-          <Route path="/student-form" element={<StudentTable />} />
+          <Route path="/candidateList" element={<StudentTable />} />
           <Route path="/studentEmail-form" element={<StudentEmailForm />} />
           <Route path="/Emailsuccess" element={<Emailsuccess />} />
-          <Route path="/candidateList" element={<CandidateList />} />
+          {/* <Route path="/candidateList" element={<CandidateList />} /> */}
           <Route path="/MailDashborad" element={<MailDashboard />} />
           <Route path="/SetCriteria" element={<EligibilityCriteriaForm />} />
           <Route path="/GradingCriteria" element={<GradingCriteria />} />
+          <Route path="/UpdateTest/:testId" element={<UpdateTest />} />
+          <Route path="/UpdateTest" element={<UpdateTest />} />
         </Route>
 
         {/* Fallback Route */}

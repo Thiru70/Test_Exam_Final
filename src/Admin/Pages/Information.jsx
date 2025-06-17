@@ -2,6 +2,8 @@ import { Eye, EyeOff } from "lucide-react";
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
+import { ToastContainer,toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"
 
 export default function InformationForm() {
   const [formData, setFormData] = useState({
@@ -31,15 +33,16 @@ export default function InformationForm() {
     try {
       const response = await axiosInstance.post('/company/register', formData);
       console.log('Form submitted:', response.data);
-      window.alert('Company registered successfully')
-      navigate('/myTest')
+      toast.success('Company registered successfully')
+      navigate('/company-login')
     } catch (err) {
       console.error('Submission error:', err);
-      window.alert(err.response.data.error || "Company already registered with this email")
+      toast.error(err.response.data.error || "Company already registered with this email")
     }
   };
   return (
     <div className="min-h-screen flex">
+      <ToastContainer />
       <div className="hidden md:flex flex-1 bg-blue-600 items-center justify-center">
         <img
           src="./exam-sheet.png"
@@ -51,7 +54,7 @@ export default function InformationForm() {
         <div className="absolute top-6 right-8 text-sm text-gray-400">
           Already have an account?{" "}
           <Link
-            to="/login"
+            to="/company-login"
             className="text-blue-600 hover:underline font-medium"
           >
             Sign In

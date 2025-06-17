@@ -4,6 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { Dialog } from "primereact/dialog";
 import axiosInstance from "../../utils/axiosInstance";
 import { Edit, Trash } from "lucide-react";
+import * as XLSX from "xlsx";
+import { ToastContainer,toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"
 
 const MyTest = () => {
   const navigate = useNavigate();
@@ -13,52 +16,114 @@ const MyTest = () => {
   const [eligibility, setEligibility] = useState("");
   const [showDateInputs, setShowDateInputs] = useState("");
   const [showTimeInputs, setShowTimeInputs] = useState("");
-  const [currentTestId, setCurrentTestId] = useState(null)
-  const fileInputRef = useRef(null);
-  const email = localStorage.getItem('otpEmail')
-
-  const handleBrowseClick = () => {
-    fileInputRef.current.click();
-  };
+  const [currentTestId, setCurrentTestId] = useState(null);
+  const email = localStorage.getItem("adminEmail");
 
   const fetchAllTests = async () => {
-    const response = await axiosInstance.get(
-      `/tests?createdBy=${email}`
-    );
+    const response = await axiosInstance.get(`/tests?createdBy=${email}`);
     setTestData(response.data);
-    console.log(response.data, "response");
+    toast.success('Successfully fetched all tests.')
   };
+
+  const handleTestDelete = async (getCurrentTestId) => {
+    const result = await axiosInstance.delete(`/test/${getCurrentTestId}`);
+    toast.success('Successfully deleted the test')
+    setCurrentTestId(getCurrentTestId);
+  };
+
+  const [testName, setTestName] = useState("");
+  const [duration, setDuration] = useState(45);
+  const [passingMarks, setPassingMarks] = useState(5);
+  const [excelQuestions, setExcelQuestions] = useState([]);
+  const [percent10, setPercent10] = useState("");
+  const [percent12, setPercent12] = useState("");
+  const [dateStart, setDateStart] = useState("");
+  const [dateEnd, setDateEnd] = useState("");
+  const [timeStart, setTimeStart] = useState("");
+  const [timeEnd, setTimeEnd] = useState("");
+  const fileInputRef = useRef();
+
+  const handleBrowseClick = () => fileInputRef.current.click();
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      console.log("Selected file:", file);
-      // Handle file upload here
+    if (!file) {
+      toast.error('File not uploaded, Please try again!');
+      return 
     }
+
+    toast.success('Excel file uploaded successfully')
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const binaryStr = event.target.result;
+      const workbook = XLSX.read(binaryStr, { type: "binary" });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+      console.log(jsonData, "jsonData");
+      const questions = jsonData.map((q) => {
+        const isMCQ = (q.type || '').toLowerCase() === 'mcq';
+        return {
+          question: q.question,
+          type: q.type,
+          ...(isMCQ && {
+            options: [q.option1, q.option2, q.option3, q.option4].filter(opt => !!opt)
+          }),
+          answer: q.answer,
+          difficulty: (q.difficulty || '').toLowerCase(),
+        };
+      });
+      setExcelQuestions(questions);
+    };
+
+    reader.readAsBinaryString(file);
   };
 
-  const handleTestDelete =async (getCurrentTestId) => {
-    const result = await axiosInstance.delete(`/test/${getCurrentTestId}`) 
-    setCurrentTestId(getCurrentTestId)
-    console.log(result,"result")
-  }
+  const handleImportTest = async () => {
+    const payload = {
+      testName,
+      duration: Number(duration),
+      passingMarks: Number(passingMarks),
+      shuffle: true,
+      questions: excelQuestions,
+      eligibility: {
+        required: eligibility === "yes",
+        tenthPercentage: Number(percent10),
+        twelfthPercentage: Number(percent12),
+      },
+      sessionExam: {
+        isSession: showDateInputs === "yes" || showTimeInputs === "yes",
+        startDate: dateStart,
+        endDate: dateEnd,
+        startTime: timeStart,
+        endTime: timeEnd,
+      },
+      createdBy: email,
+    };
 
+    try {
+      const response = await axiosInstance.post("/test", payload);
+      toast.success('successfully created new test')
+      setDocumentOpen(false);
+    } catch (error) {
+      toast.error("Upload failed:", error)
+    }
+  };
   useEffect(() => {
     fetchAllTests();
   }, [currentTestId]);
 
   return (
     <>
+    <ToastContainer />
       <div className="p-2">
         <div className="flex justify-end gap-3 p-5">
-          <button className="bg-[#8772C1] text-white px-4 py-2 rounded-md text-sm hover:bg-purple-700">
-            Generate questions
-          </button>
           <button
             onClick={() => setOpen(!open)}
             className="bg-[#0BC279] text-white px-4 py-2 rounded-md text-sm hover:bg-green-700"
           >
-            New Test
+            Create New Test
           </button>
           {open && (
             <div className="absolute right-2 top-36 mt-2 w-48 bg-[#F4F4F4] border rounded-md shadow z-50">
@@ -87,12 +152,14 @@ const MyTest = () => {
                 <span
                   className={`px-2 py-1 text-xs font-medium rounded border 
                   ${
-                    test.statusType === "danger"
+                    new Date(test.sessionExam.endDate) < Date.now()
                       ? " text-[#D91919] border-[#F10A0A]"
                       : " text-[#34C759] border-[#34C759]"
                   }`}
                 >
-                  {test.status || "active"}
+                  {new Date(test.sessionExam.endDate) < Date.now()
+                    ? "ended"
+                    : "active"}
                 </span>
                 <span className="text-sm text-gray-500">
                   Created: {new Date(test.timestamp).toLocaleDateString()}
@@ -104,8 +171,11 @@ const MyTest = () => {
               </div>
 
               <div className="flex justify-end gap-5">
-                <Edit  />
-                <Trash onClick={()=> handleTestDelete(test.testId)} />
+                <Edit
+                  onClick={() => navigate(`/UpdateTest/${test.testId}`)}
+                  className="cursor-pointer"
+                />
+                <Trash onClick={() => handleTestDelete(test.testId)} />
               </div>
             </div>
           ))}
@@ -133,6 +203,28 @@ const MyTest = () => {
               <input
                 type="text"
                 className="border w-full p-2 focus:outline-none mb-2"
+                value={testName}
+                onChange={(e) => setTestName(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="font-semibold">Passing Marks</label>
+              <input
+                type="number"
+                className="border w-full p-2 focus:outline-none mb-2"
+                value={passingMarks}
+                onChange={(e) => setPassingMarks(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label className="font-semibold">Duration (minutes)</label>
+              <input
+                type="number"
+                className="border w-full p-2 focus:outline-none mb-2"
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
               />
             </div>
 
@@ -168,11 +260,15 @@ const MyTest = () => {
                     type="number"
                     placeholder="Enter 12th %"
                     className="w-full border p-2"
+                    value={percent12}
+                    onChange={(e) => setPercent12(e.target.value)}
                   />
                   <input
                     type="number"
                     placeholder="Enter 10th %"
                     className="w-full border p-2"
+                    value={percent10}
+                    onChange={(e) => setPercent10(e.target.value)}
                   />
                 </div>
               )}
@@ -206,8 +302,18 @@ const MyTest = () => {
 
               {showDateInputs === "yes" && (
                 <div className="space-y-3">
-                  <input type="date" className="w-full border p-2" />
-                  <input type="date" className="w-full border p-2" />
+                  <input
+                    type="date"
+                    className="w-full border p-2"
+                    value={dateStart}
+                    onChange={(e) => setDateStart(e.target.value)}
+                  />
+                  <input
+                    type="date"
+                    className="w-full border p-2"
+                    value={dateEnd}
+                    onChange={(e) => setDateEnd(e.target.value)}
+                  />
                 </div>
               )}
             </div>
@@ -240,8 +346,18 @@ const MyTest = () => {
 
               {showTimeInputs === "yes" && (
                 <div className="space-y-3">
-                  <input type="time" className="w-full border p-2" />
-                  <input type="time" className="w-full border p-2" />
+                  <input
+                    type="time"
+                    className="w-full border p-2"
+                    value={timeStart}
+                    onChange={(e) => setTimeStart(e.target.value)}
+                  />
+                  <input
+                    type="time"
+                    className="w-full border p-2"
+                    value={timeEnd}
+                    onChange={(e) => setTimeEnd(e.target.value)}
+                  />
                 </div>
               )}
             </div>
@@ -254,7 +370,7 @@ const MyTest = () => {
                 className="w-12 h-12 mx-auto mb-2"
               />
               <p className="text-gray-700 text-sm mb-2">
-                Select a PDF, Microsoft Word (.docx), or text file to upload
+                Select a Excel file to upload
               </p>
               <button
                 onClick={handleBrowseClick}
@@ -267,7 +383,7 @@ const MyTest = () => {
                 ref={fileInputRef}
                 onChange={handleFileChange}
                 className="hidden"
-                accept=".pdf,.docx,.txt"
+                accept=".xlsx"
               />
             </div>
           </div>
@@ -280,7 +396,10 @@ const MyTest = () => {
             >
               Cancel
             </button>
-            <button className="bg-gray-700 text-white px-4 py-2 rounded-md">
+            <button
+              onClick={handleImportTest}
+              className="bg-gray-700 text-white px-4 py-2 rounded-md"
+            >
               Import
             </button>
           </div>

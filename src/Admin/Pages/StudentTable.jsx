@@ -1,16 +1,20 @@
+import { EyeIcon, Trash } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { IoIosMenu } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from '../../utils/axiosInstance';
+import { ToastContainer,toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"
 
 const StudentTable = () => {
     const navigate = useNavigate();
     const [studentData, setStudentData] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [filter, setFilter] = useState('');
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [eligibilityCriteria, setEligibilityCriteria] = useState(null);
+    const [candidateDelete,setCandidateDelete] = useState(false)
     const rowsPerPage = 10;
 
     // Fetch eligibility criteria from test API
@@ -20,13 +24,13 @@ const StudentTable = () => {
                 const response = await fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/test/01JXCQEQGN53SBW8FY4KKQXXPC');
                 
                 if (!response.ok) {
-                    throw new Error('Failed to fetch eligibility criteria');
+                    toast.error('Failed to fetch eligibility criteria');
                 }
                 
                 const data = await response.json();
                 setEligibilityCriteria(data.eligibility);
             } catch (err) {
-                console.error('Error fetching eligibility criteria:', err);
+                toast.error('Error fetching eligibility criteria:', err);
                 // Set default criteria if API fails
                 setEligibilityCriteria({
                     required: true,
@@ -62,11 +66,11 @@ const StudentTable = () => {
                 const response = await fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/student/all');
                 
                 if (!response.ok) {
-                    throw new Error('Failed to fetch student data');
+                    toast.error('Failed to fetch student data');
                 }
                 
                 const data = await response.json();
-                
+                toast.success('Successfylly fetched all candidate list')
                 // Transform API data to match our component needs
                 const transformedData = data.students.map((student, index) => {
                     const studentData = {
@@ -91,10 +95,8 @@ const StudentTable = () => {
                 });
                 
                 setStudentData(transformedData);
-                setError(null);
             } catch (err) {
-                setError(err.message);
-                console.error('Error fetching student data:', err);
+                toast.error(err.message);
             } finally {
                 setLoading(false);
             }
@@ -104,7 +106,7 @@ const StudentTable = () => {
         if (eligibilityCriteria !== null) {
             fetchStudentData();
         }
-    }, [eligibilityCriteria]);
+    }, [eligibilityCriteria,candidateDelete]);
 
     const filteredStudents = studentData.filter((student) => {
         if (filter === 'Eligibility') return student.eligible;
@@ -147,29 +149,24 @@ const StudentTable = () => {
         );
     }
 
-    if (error) {
-        return (
-            <div className="flex justify-center items-center h-64">
-                <div className="text-red-600">Error: {error}</div>
-            </div>
-        );
+    const handeleUserDelete= async(getEmail) => {
+        setCandidateDelete(true)
+        await axiosInstance.delete(`/company/user/${getEmail}`)
+        toast.success('successfully deleted the user!')
     }
 
     return (
         <>
-            <div className='p-2 flex gap-2 justify-end'>
-                <button className='bg-[#0BC279] text-white py-2 px-4 rounded-md'>Form responses</button>
-                <button className='bg-[#0BC279] text-white py-2 px-4 rounded-md'>Create form</button>
-            </div>
             <div className="p-6">
+                <ToastContainer />
                 <div className="flex justify-between items-center mb-4">
                     <div>
-                        <h2 className="text-xl font-semibold">Student form</h2>
-                        {eligibilityCriteria && eligibilityCriteria.required && (
+                        <h2 className="text-xl font-semibold">Candidate List</h2>
+                        {/* {eligibilityCriteria && eligibilityCriteria.required && (
                             <p className="text-sm text-gray-600 mt-1">
                                 Eligibility: 10th ≥ {eligibilityCriteria.tenthPercentage}%, 12th ≥ {eligibilityCriteria.twelfthPercentage}%
                             </p>
-                        )}
+                        )} */}
                     </div>
                     <div className="relative inline-block text-left">
                         <button
@@ -208,7 +205,7 @@ const StudentTable = () => {
                                 <th className="px-4 py-2">Graduation %</th>
                                 <th className="px-4 py-2">Eligible</th>
                                 <th className="px-4 py-2">Gmail</th>
-                                <th className="px-4 py-2">Form</th>
+                                <th className="px-4 py-2">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -236,10 +233,17 @@ const StudentTable = () => {
                                     <td className="px-4 py-2">{student.email}</td>
                                     <td className="px-4 py-2">
                                         <button 
-                                            className="text-blue-600 border border-blue-600 px-3 py-1 rounded-full hover:bg-blue-600 hover:text-white transition" 
-                                            onClick={() => handleViewClick(student)}
+                                           
+                                            className="text-blue-600  hover:scale-110 transition" 
+                                            onClick={() => navigate('/studentEmail-form')}
                                         >
-                                            view
+                                            <EyeIcon/>
+                                        </button>
+                                        <button 
+                                            className="text-blue-600 hover:scale-110 transition ml-3 " 
+                                            onClick={() =>handeleUserDelete(student.email)}
+                                        >
+                                            <Trash/>
                                         </button>
                                     </td>
                                 </tr>

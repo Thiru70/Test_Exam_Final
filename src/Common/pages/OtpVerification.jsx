@@ -4,6 +4,8 @@ import emailjs from 'emailjs-com';
 import Sidebar from '../components/Sidebar';
 import AuthCard from '../components/AuthCard';
 import { EMAILJS_CONFIG } from '../../services/emailConfig';
+import { ToastContainer,toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"
 
 const OtpVerification = () => {
   const [otp, setOtp] = useState(['', '', '', '', '']);
@@ -32,7 +34,6 @@ const OtpVerification = () => {
       // If emails don't match, generate new OTP for current email
       const newOtp = Math.floor(10000 + Math.random() * 90000).toString();
       localStorage.setItem('currentOtp', newOtp);
-      localStorage.setItem('otpEmail', email);
     }
   }, [email]);
 
@@ -75,16 +76,20 @@ fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/api/submit-otp
 })
   .then(res => res.json())
   .then(data => {
+    console.log(data,"data")
     setLoading(false);
     if (data.success) {
-      navigate(`/complete-profile?type=${userType}`);
+      navigate(`/information`);
+      toast.success('Otp verify succesfully')
     } else {
       setError(data.message || 'Invalid verification code.');
+      toast.error(data.message || 'Invalid verification code.')
     }
   })
   .catch(err => {
     setLoading(false);
     setError('Server error. Please try again.');
+    toast.error('Server error. Please try again.')
     console.error(err);
   });
 
@@ -102,6 +107,7 @@ fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/api/submit-otp
     if (!userEmail) {
       setLoading(false);
       alert('Email address not found. Please go back to the previous step.');
+      toast.error('Email address not found. Please go back to the previous step.')
       return;
     }
     
@@ -128,15 +134,15 @@ fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/api/submit-otp
   .then(data => {
     setLoading(false);
     if (data.success) {
-      alert('A new verification code has been sent.');
+      toast.success('A new verification code has been sent.');
     } else {
-      alert(data.message || 'Failed to resend verification code.');
+      toast.error(data.message || 'Failed to resend verification code.');
     }
   })
   .catch(err => {
     setLoading(false);
     console.error('Failed to resend OTP:', err);
-    alert('Server error. Please try again.');
+    toast.error('Server error. Please try again.');
   });
 
   };
@@ -144,6 +150,7 @@ fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/api/submit-otp
   return (
     <div className="flex min-h-screen w-full">
       {/* Left side - Sidebar with exam sheets */}
+      <ToastContainer />
       <Sidebar />
       
       {/* Right side - Auth Content */}

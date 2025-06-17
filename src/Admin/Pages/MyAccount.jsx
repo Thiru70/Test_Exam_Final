@@ -1,149 +1,93 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
+import axiosInstance from "../../utils/axiosInstance";
 
-const MyAccount = () => {
-  const [editMode, setEditMode] = useState(false);
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    role: "User", // or whatever role
-  });
+const ProfileForm = () => {
+  const email = localStorage.getItem("adminEmail");
+  const [profileData, setProfileData] = useState({});
+  const [isEditing, setIsEditing] = useState(false);
 
-  const fileInputRef = useRef(null);
-  const [fileName, setFileName] = useState("No file chosen");
-
-  const handleBrowseClick = () => {
-    fileInputRef.current.click();
+  const fetchProfileData = async () => {
+    const response = await axiosInstance.get(`/company/profile/${email}`);
+    setProfileData(response.data.profile);
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFileName(file.name);
-      console.log("Selected file:", file.name);
-      // Add upload logic here if needed
+  useEffect(() => {
+    fetchProfileData();
+  }, [email]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setProfileData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleEditClick = () => {
+    if (isEditing) {
+      // Save logic (can be a PUT/PATCH API call)
+      axiosInstance.put(`/company/profile/${email}`, profileData)
+        .then(res => {
+          console.log("Saved successfully", res.data);
+          window.alert('Successfully updated the profile')
+          setIsEditing(false);
+        })
+        .catch(err => {
+          console.error("Save failed", err);
+        });
+    } else {
+      setIsEditing(true);
     }
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSave = () => {
-    setEditMode(false);
-    console.log("Saved:", formData);
-  };
-
   return (
-    <div className="min-h-screen bg-gray-100 flex justify-center items-start p-6">
-      <div className="bg-white w-full max-w-2xl rounded-xl shadow-lg p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold text-gray-700">My Account</h2>
+    <div className="bg-gray-100 p-6 md:p-10">
+      {/* Header */}
+      <div className="bg-blue-600 text-white py-4 px-6 rounded-t-lg flex justify-between items-center">
+        <div className="w-full flex justify-between">
+          <h2 className="text-xl font-semibold">Profile</h2>
           <button
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            onClick={() => setEditMode(!editMode)}
+            onClick={handleEditClick}
+            className="bg-white text-blue-600 font-medium px-4 py-1 rounded hover:bg-gray-100"
           >
-            {editMode ? "Cancel" : "Edit"}
+            {isEditing ? "Save" : "Edit"}
           </button>
         </div>
+      </div>
 
-        <div className="space-y-4">
-          {/* Full Name */}
-          <div>
-            <label className="block text-sm text-gray-600">Full Name</label>
-            <input
-              type="text"
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleChange}
-              disabled={!editMode}
-              className={`mt-1 w-full p-2 border rounded ${
-                editMode ? "border-blue-400" : "bg-gray-100 border-gray-200"
-              }`}
-            />
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-sm text-gray-600">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              disabled={!editMode}
-              className={`mt-1 w-full p-2 border rounded ${
-                editMode ? "border-blue-400" : "bg-gray-100 border-gray-200"
-              }`}
-            />
-          </div>
-
-          {/* Phone */}
-          <div>
-            <label className="block text-sm text-gray-600">Phone</label>
-            <input
-              type="text"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              disabled={!editMode}
-              className={`mt-1 w-full p-2 border rounded ${
-                editMode ? "border-blue-400" : "bg-gray-100 border-gray-200"
-              }`}
-            />
-          </div>
-
-          {/* Role */}
-          <div>
-            <label className="block text-sm text-gray-600">Role</label>
-            <input
-              type="text"
-              name="role"
-              value={formData.role}
-              disabled
-              className="mt-1 w-full p-2 border rounded bg-gray-100 border-gray-200"
-            />
-          </div>
-
-          {/* File Upload Section */}
-          <div className="mt-6">
-            <label className="block text-sm font-medium text-gray-700 mb-1">Upload File</label>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleBrowseClick}
-                disabled={!editMode}
-                className={`px-4 py-2 rounded text-white ${
-                  editMode ? "bg-green-600 hover:bg-green-700" : "bg-gray-400 cursor-not-allowed"
-                }`}
-              >
-                Browse
-              </button>
-              <span className="text-sm text-gray-600">{fileName}</span>
+      {/* Profile Info */}
+      <div className="p-6 flex flex-col md:flex-row items-start gap-6 bg-white rounded-b-lg shadow-md">
+        <form className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+          {[
+            { label: "First Name", name: "first_name" },
+            { label: "Last Name", name: "last_name" },
+            { label: "Email", name: "email", readOnly: true },
+            { label: "Position", name: "position" },
+            { label: "Company Name", name: "company_name" },
+            { label: "Created At", name: "created_at", readOnly: true }
+          ].map(({ label, name, readOnly }) => (
+            <div key={name}>
+              <label className="block text-sm font-medium text-gray-700">
+                {label}
+              </label>
+              <input
+                type="text"
+                name={name}
+                value={
+                  name === "created_at"
+                    ? new Date(profileData[name]).toLocaleDateString()
+                    : profileData[name] || ""
+                }
+                onChange={handleChange}
+                readOnly={!isEditing || readOnly}
+                className={`mt-1 block w-full border border-gray-300 rounded px-3 py-2 ${!isEditing || readOnly ? 'bg-gray-100 outline-none' : ''}`}
+              />
             </div>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              className="hidden"
-            />
-          </div>
-        </div>
-
-        {/* Save Button */}
-        {editMode && (
-          <div className="flex justify-end mt-6">
-            <button
-              onClick={handleSave}
-              className="px-5 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-            >
-              Save Changes
-            </button>
-          </div>
-        )}
+          ))}
+        </form>
       </div>
     </div>
   );
 };
 
-export default MyAccount;
+export default ProfileForm;

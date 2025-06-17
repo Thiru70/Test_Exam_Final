@@ -2,18 +2,21 @@ import React, { useState, useEffect } from "react";
 import { Icon } from "@iconify-icon/react";
 import { Link, useLocation } from "react-router-dom";
 
+import { ToastContainer,toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"
+
 const Sidebar = () => {
   const location = useLocation();
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const menu = [
-    { path: "/myTest", label: "My test", icon: "mdi:home" },
-    { path: "/candidateList", label: "Candidate list", icon: "mdi:user" },
-    { path: "/SetCriteria",label:"SetCriteria", icon: "mdi-calendar-check-outline"},
-    { path: "/respondents", label: "Respondents", icon: "mdi:account-group-outline" },
-    { path: "/database", label: "Results", icon: "mdi:database" },
-    { path: "/student-form", label: "Student Form", icon: "mdi:form-select" },
+    { path: "/myTest", label: "Home", icon: "mdi:home" },
+    // { path: "/candidateList", label: "Candidate list", icon: "mdi:user" },
+    // { path: "/SetCriteria",label:"SetCriteria", icon: "mdi-calendar-check-outline"},
+    // { path: "/respondents", label: "Respondents", icon: "mdi:account-group-outline" },
+    { path: "/candidateList", label: "Candidate List", icon: "mdi:form-select" },
+    { path: "/results", label: "Results", icon: "mdi:database" },
     { path: "/account", label: "My Account", icon: "mdi:account-circle-outline" },
   ];
 
@@ -33,6 +36,7 @@ const Sidebar = () => {
 
   return (
     <>
+    <ToastContainer />
       {/* Mobile Header */}
       {isMobile && (
         <header className="fixed top-0 left-0 right-0 bg-white shadow-sm py-3 px-4 flex items-center z-20">
