@@ -8,7 +8,6 @@ const Sidebar = ({ activeItem, setActiveItem }) => {
   const menu = [
     { path: "/myTest", label: "My test", icon: Home },
     { path: "/myResults", label: "My Results", icon: User },
-    { path: "/examInstructions", label: "Exam Instructions", icon: FileText },
     { path: "/support", label: "Support", icon: HelpCircle },
     { path: "/profile", label: "Profile", icon: BarChart3 },
   ];

@@ -6,6 +6,43 @@ import MarksObtainedTab from "./MarksObtainedTab";
 const ResultsDetail = ({ test, onBack }) => {
   const [activeTab, setActiveTab] = useState("overview");
 
+  // Extract testID and submissionID from the test object
+  const testID = test.testID || test.testId || test.id;
+  const submissionID = test.submissionId || test.submissionID || test.id;
+
+  // Function to format date
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      return 'N/A';
+    }
+  };
+
+  // Get created date from different possible sources
+  const getCreatedDate = () => {
+    if (test.testResults?.createdDate) {
+      return test.testResults.createdDate;
+    }
+    if (test.startTime) {
+      return formatDate(test.startTime);
+    }
+    if (test.timestamp) {
+      return formatDate(test.timestamp);
+    }
+    return 'N/A';
+  };
+
+  // Debug logging
+  console.log('Current test ID:', testID);
+  console.log('Current submission ID:', submissionID);
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="mb-6">
@@ -18,12 +55,12 @@ const ResultsDetail = ({ test, onBack }) => {
         </button>
         
         <h2 className="text-xl font-semibold text-gray-800 mb-1">Results</h2>
-        <p className="text-sm text-gray-500">Results Created: {test.testResults.createdDate}</p>
+        <p className="text-sm text-gray-500">Results Created: {getCreatedDate()}</p>
       </div>
 
       {/* Blue Header */}
       <div className="bg-blue-600 text-white px-4 py-3 rounded-t-lg">
-        <span className="text-sm font-medium">Created: {test.testResults.createdDate}</span>
+        <span className="text-sm font-medium">Created: {getCreatedDate()}</span>
       </div>
 
       {/* Tab Navigation */}
@@ -52,9 +89,9 @@ const ResultsDetail = ({ test, onBack }) => {
 
       {/* Tab Content */}
       {activeTab === "overview" ? (
-        <OverviewTab test={test} />
+        <OverviewTab test={test} testID={testID} submissionID={submissionID} />
       ) : (
-        <MarksObtainedTab test={test} />
+        <MarksObtainedTab test={test} testID={testID} submissionID={submissionID} />
       )}
     </div>
   );

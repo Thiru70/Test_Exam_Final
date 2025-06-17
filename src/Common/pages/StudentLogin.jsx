@@ -32,10 +32,7 @@ const AuthCard = ({ title, subtitle, children }) => {
     <div className="flex-1 bg-white flex items-center justify-center p-8">
       <div className="w-full max-w-lg">
         <div className="text-right mb-8">
-          <span className="text-gray-600">Already have an account? </span>
-          <a href="#" className="text-blue-600 font-medium hover:underline">
-            Log in
-          </a>
+          
         </div>
         
         <div className="bg-white rounded-lg shadow-sm p-8">
@@ -156,10 +153,29 @@ const StudentLogin = () => {
       // Console log the response
       console.log('Login Response:', data);
       
-      // Store student data
-      // Note: In a real application, you would use localStorage:
-      // localStorage.setItem('student_id', data.student_id);
-      // localStorage.setItem('token', data.token);
+      // Store student data in localStorage
+      const studentId = data.student_id || formData.studentId;
+      localStorage.setItem('student_id', studentId);
+      
+      // Store additional data if available
+      if (data.token) {
+        localStorage.setItem('auth_token', data.token);
+      }
+      
+      // Store entire student data as JSON for easy access
+      localStorage.setItem('student_data', JSON.stringify(data));
+      
+      // Store login timestamp
+      localStorage.setItem('login_timestamp', new Date().toISOString());
+      
+      // Set flag for welcome toast (NEW LINE)
+      sessionStorage.setItem('justLoggedIn', 'true');
+      
+      console.log('Student data stored in localStorage:', {
+        student_id: studentId,
+        token: data.token,
+        login_time: new Date().toISOString()
+      });
       
       // Show success toast
       setToast({
@@ -172,7 +188,7 @@ const StudentLogin = () => {
         navigate('/student-dashboard', { 
           state: { 
             studentData: data,
-            studentId: data.student_id || formData.studentId 
+            studentId: studentId 
           } 
         });
       }, 1500);
@@ -210,22 +226,7 @@ const StudentLogin = () => {
           subtitle="Please log in using your Student ID provided to you. Your password is your Date of Birth (DOB) in DD/MM/YYYY format. Ensure you update your password after logging in for the first time."
         >
           <div className="space-y-6">
-            {/* Error Message */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-3">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-red-800">{error}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-            
+
             {/* Student ID Field */}
             <div>
               <label htmlFor="studentId" className="block text-sm font-medium text-gray-700 mb-2">

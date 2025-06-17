@@ -1,31 +1,93 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AlertTriangle, Mic, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Instructions = () => {
-  const [checkedItems, setCheckedItems] = useState({});
+  const [allInstructionsAccepted, setAllInstructionsAccepted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [testData, setTestData] = useState(null);
   const navigate = useNavigate();
 
-  // Handle checkbox changes
-  const handleCheckboxChange = (index) => {
-    setCheckedItems(prev => ({
-      ...prev,
-      [index]: !prev[index]
-    }));
+  // Fetch test data on component mount
+  useEffect(() => {
+    const fetchTestData = async () => {
+      try {
+        const studentId = localStorage.getItem('student_id');
+        if (!studentId) {
+          console.error('No student ID found in localStorage');
+          return;
+        }
+
+        const response = await fetch(`https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/user-tests?studentId=${studentId}`);
+        const data = await response.json();
+        setTestData(data);
+      } catch (error) {
+        console.error('Error fetching test data:', error);
+      }
+    };
+
+    fetchTestData();
+  }, []);
+
+  // Handle checkbox change for all instructions
+  const handleAcceptAllInstructions = () => {
+    setAllInstructionsAccepted(!allInstructionsAccepted);
   };
 
- 
-  const allRequiredChecked = () => {
-    const requiredIndices = [1, 2, 3, 4, 5, 6, 7, 8]; // All instruction items except header (0) and warning (9)
-    return requiredIndices.every(index => checkedItems[index]);
-  };
+  const handleStartExam = async () => {
+    if (!allInstructionsAccepted) {
+      return;
+    }
 
-  const handleStartExam = () => {
-    if (allRequiredChecked()) {
-   
-      console.log('All instructions checked - navigating to aptitude test');
-     
-      navigate('/aptitude-test');
+    setLoading(true);
+
+    try {
+      // Get test ID from localStorage
+      const currentTestId = localStorage.getItem('currentTestId');
+      
+      if (!currentTestId) {
+        console.error('No test ID found in localStorage');
+        alert('Test ID not found. Please select a test first.');
+        setLoading(false);
+        return;
+      }
+
+      if (!testData || !testData.testData) {
+        console.error('Test data not loaded');
+        alert('Test data not loaded. Please refresh the page.');
+        setLoading(false);
+        return;
+      }
+
+      // Find the matching test in the API response
+      const matchingTest = testData.testData.find(test => test.testId === currentTestId);
+
+      if (!matchingTest) {
+        console.error('Test ID from localStorage does not match any test in API response');
+        alert('Test not found. Please select a valid test.');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Matching test found:', matchingTest);
+      console.log('Test type:', matchingTest.type);
+
+      // Navigate based on test type
+      if (matchingTest.type === 'coding') {
+        console.log('Navigating to coding section');
+        navigate('/coding-section');
+      } else if (matchingTest.type === 'mcq') {
+        console.log('Navigating to aptitude test');
+        navigate('/aptitude-test');
+      } else {
+        console.error('Unknown test type:', matchingTest.type);
+        alert('Unknown test type. Please contact administrator.');
+      }
+    } catch (error) {
+      console.error('Error during exam start:', error);
+      alert('An error occurred. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -36,36 +98,28 @@ const Instructions = () => {
       isHeader: true
     },
     {
-      text: "Check Your System: Ensure your device (PC/laptop/tablet) is fully charged and connected to a stable internet connection.",
-      hasCheckbox: true
+      text: "Check Your System: Ensure your device (PC/laptop/tablet) is fully charged and connected to a stable internet connection."
     },
     {
-      text: "Browser Compatibility: Use the recommended browser (e.g., Chrome, Firefox) and disable unnecessary extensions.",
-      hasCheckbox: true
+      text: "Browser Compatibility: Use the recommended browser (e.g., Chrome, Firefox) and disable unnecessary extensions."
     },
     {
-      text: "Quiet Environment: Choose a distraction-free, well-lit space for the test.",
-      hasCheckbox: true
+      text: "Quiet Environment: Choose a distraction-free, well-lit space for the test."
     },
     {
-      text: "Webcam & Microphone: If required, allow access to your webcam and microphone for monitoring.",
-      hasCheckbox: true
+      text: "Webcam & Microphone: If required, allow access to your webcam and microphone for monitoring."
     },
     {
-      text: "Login on Time: Join at least 10-15 minutes before the test starts to avoid last-minute issues.",
-      hasCheckbox: true
+      text: "Login on Time: Join at least 10-15 minutes before the test starts to avoid last-minute issues."
     },
     {
-      text: "Read Instructions: Carefully review all guidelines before starting the test.",
-      hasCheckbox: true
+      text: "Read Instructions: Carefully review all guidelines before starting the test."
     },
     {
-      text: "No External Help: Do not use unauthorized materials, apps, or communication during the exam.",
-      hasCheckbox: true
+      text: "No External Help: Do not use unauthorized materials, apps, or communication during the exam."
     },
     {
-      text: "Submission: Ensure you submit your answers before the timer expires.",
-      hasCheckbox: true
+      text: "Submission: Ensure you submit your answers before the timer expires."
     },
     {
       icon: <AlertTriangle className="w-5 h-5 text-red-600" />,
@@ -100,19 +154,8 @@ const Instructions = () => {
                 <div className="flex-shrink-0 mt-0.5">
                   {instruction.isHeader && instruction.icon}
                   {instruction.isWarning && instruction.icon}
-                  {instruction.hasCheckbox && (
-                    <div
-                      className={`w-5 h-5 border-2 rounded cursor-pointer flex items-center justify-center transition-all duration-200 ${
-                        checkedItems[index]
-                          ? 'bg-green-500 border-green-500'
-                          : 'border-gray-300 hover:border-blue-400'
-                      }`}
-                      onClick={() => handleCheckboxChange(index)}
-                    >
-                      {checkedItems[index] && (
-                        <Check className="w-3 h-3 text-white" />
-                      )}
-                    </div>
+                  {!instruction.isHeader && !instruction.isWarning && (
+                    <div className="w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
                   )}
                 </div>
                 <div className="flex-1">
@@ -128,9 +171,7 @@ const Instructions = () => {
                     </h2>
                   ) : (
                     <p 
-                      className={`leading-relaxed ${
-                        instruction.hasCheckbox ? 'text-gray-700 cursor-pointer' : 'text-gray-700'
-                      }`}
+                      className="leading-relaxed text-gray-700"
                       style={{ 
                         fontFamily: 'Poppins, sans-serif',
                         fontWeight: 500,
@@ -138,7 +179,6 @@ const Instructions = () => {
                         lineHeight: '100%',
                         letterSpacing: '0%'
                       }}
-                      onClick={instruction.hasCheckbox ? () => handleCheckboxChange(index) : undefined}
                     >
                       {instruction.text}
                     </p>
@@ -146,8 +186,41 @@ const Instructions = () => {
                 </div>
               </div>
             ))}
+
+            {/* Single Accept All Instructions Checkbox */}
+            <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-start space-x-3">
+                <div
+                  className={`w-6 h-6 border-2 rounded cursor-pointer flex items-center justify-center transition-all duration-200 mt-0.5 ${
+                    allInstructionsAccepted
+                      ? 'bg-green-500 border-green-500'
+                      : 'border-gray-400 hover:border-blue-400'
+                  }`}
+                  onClick={handleAcceptAllInstructions}
+                >
+                  {allInstructionsAccepted && (
+                    <Check className="w-4 h-4 text-white" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p 
+                    className="leading-relaxed text-gray-800 font-medium cursor-pointer"
+                    style={{ 
+                      fontFamily: 'Poppins, sans-serif',
+                      fontWeight: 600,
+                      fontSize: '18px',
+                      lineHeight: '140%',
+                      letterSpacing: '0%'
+                    }}
+                    onClick={handleAcceptAllInstructions}
+                  >
+                    I have read and understood all the above instructions and agree to follow them during the examination.
+                  </p>
+                </div>
+              </div>
+            </div>
              
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 mt-6">
               <p className="text-green-800 font-medium" style={{ 
                 fontFamily: 'Poppins, sans-serif',
                 fontWeight: 500,
@@ -165,9 +238,9 @@ const Instructions = () => {
         <div className="fixed bottom-8 right-8">
           <button
             onClick={handleStartExam}
-            disabled={!allRequiredChecked()}
+            disabled={!allInstructionsAccepted || loading}
             className={`font-semibold px-12 py-4 rounded-full text-lg shadow-lg transform transition-all duration-200 ${
-              allRequiredChecked()
+              allInstructionsAccepted && !loading
                 ? 'bg-blue-500 hover:bg-blue-600 text-white hover:scale-105 hover:shadow-xl cursor-pointer'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
@@ -179,7 +252,7 @@ const Instructions = () => {
               letterSpacing: '0%'
             }}
           >
-            Start Exam
+            {loading ? 'Loading...' : 'Start Exam'}
           </button>
         </div>
       </div>

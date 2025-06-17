@@ -1,7 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Check, AlertTriangle } from 'lucide-react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 const AudioDetection = ({ onNavigateNext }) => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
+  // Extract parameters from URL
+  const studentId = searchParams.get('studentId');
+  const testId = searchParams.get('testId');
+  
   const [isDetecting, setIsDetecting] = useState(false);
   const [audioDetected, setAudioDetected] = useState(false);
   const [audioLevel, setAudioLevel] = useState(0);
@@ -119,6 +127,27 @@ const AudioDetection = ({ onNavigateNext }) => {
     }
   };
 
+  const handleNext = () => {
+    // Store audio detection completion status
+    const audioDetectionData = {
+      completed: true,
+      timestamp: new Date().toISOString(),
+      audioLevel: audioLevel,
+      noiseTooLoud: noiseTooLoud
+    };
+    
+    // Store in memory (since localStorage is not available in Claude.ai)
+    // In a real app, you would use: localStorage.setItem('audioDetectionData', JSON.stringify(audioDetectionData));
+    
+    if (onNavigateNext) {
+      // Pass parameters to the callback
+      onNavigateNext({ studentId, testId, audioDetectionData });
+    } else {
+      // Default navigation to instructions with parameters
+      navigate(`/instructions?studentId=${studentId}&testId=${testId}&audioCompleted=true`);
+    }
+  };
+
   const generateWaveformBars = () => {
     const bars = [];
     const numBars = 40;
@@ -157,6 +186,14 @@ const AudioDetection = ({ onNavigateNext }) => {
 
   return (
     <div className="min-h-screen w-full bg-white flex flex-col items-center justify-center relative">
+      
+      {/* Debug Info - Show parameters (remove in production) */}
+      {(studentId || testId) && (
+        <div className="fixed top-4 left-4 bg-blue-100 text-blue-800 px-3 py-2 rounded-lg text-sm z-10">
+          <div>Student ID: {studentId || 'N/A'}</div>
+          <div>Test ID: {testId || 'N/A'}</div>
+        </div>
+      )}
       
       {/* Noise Warning - Top Right */}
       {noiseTooLoud && isDetecting && (
@@ -215,7 +252,7 @@ const AudioDetection = ({ onNavigateNext }) => {
         {/* Next Button */}
         {audioDetected && (
           <button 
-            onClick={onNavigateNext}
+            onClick={handleNext}
             className="bg-cyan-500 hover:bg-cyan-600 text-white px-10 py-4 rounded-full text-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
           >
             Next

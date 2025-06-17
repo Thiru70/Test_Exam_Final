@@ -45,8 +45,8 @@ const CodingSection = ({ onNavigateToInterview }) => {
 
   // Test data for SimpleCodeEditor
   const getTestSessionData = () => ({
-    userId: "student_001",
-    testId: "01JWQGRNXH1VBMYSD893DG9TMF",
+    userId: localStorage.getItem('student_id'),
+    testId: "01JWQGRNXH1VBMYSD893DG9TM",
     startTime: testStartTime,
     warningCount: fullscreenViolations,
     copyPasteViolations: copyPasteViolations,
@@ -78,7 +78,7 @@ const CodingSection = ({ onNavigateToInterview }) => {
     const fetchTestData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/coding-test/01JWQGRNXH1VBMYSD893DG9TMF');
+        const response = await fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/coding-test/01JWQGRNXH1VBMYSD893DG9TM');
 
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
