@@ -11,7 +11,6 @@ const CompanyForgetPassword = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const userType = 'company';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,22 +19,19 @@ const CompanyForgetPassword = () => {
     try {
       // Call your backend API to send OTP email
       toast.success('Otp Sent Successfully!')
-      const response = await fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/api/verify-email', {  
+      const response = await fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/forgot-password', {  
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, userType }),
-      });
+        body: JSON.stringify({ email }),
+      })
 
       const data = await response.json();
-
-      if (response.ok) {
-        // OTP sent successfully, don't store OTP in frontend for security
-        // Store email so you know which email is verifying
-        
+      localStorage.setItem('adminEmail',email)
+      if (response) {
         setLoading(false);
-        navigate(`/otp-verification?email=${encodeURIComponent(email)}&type=${userType}`);
+        navigate(`/reset-password`);
       } else {
         setLoading(false);
         toast.error(data.message || 'Failed to send verification code.');

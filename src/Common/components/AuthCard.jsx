@@ -6,7 +6,7 @@ const AuthCard = ({ title, subtitle, children }) => {
     <div className="w-2/3 bg-white flex items-center justify-center p-8">
       <div className="w-full max-w-lg">
         {/* Top navigation */}
-        <div className="flex justify-end mb-8">
+        {/* <div className="flex justify-end mb-8">
           {window.location.pathname !== '/login' ? (
             <Link to="/login" className="text-sm text-gray-600 hover:text-gray-900">
               Already have an account? <span className="text-blue-600 font-medium">Log in</span>
@@ -16,7 +16,7 @@ const AuthCard = ({ title, subtitle, children }) => {
               Don't have an account? <span className="text-blue-600 font-medium">Sign up</span>
             </Link>
           )}
-        </div>
+        </div> */}
         
         {/* Title and subtitle */}
         <div className="mb-4">
