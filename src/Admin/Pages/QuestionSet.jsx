@@ -3,6 +3,8 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Toolbar options for ReactQuill
 const toolbarOptions = [
@@ -118,7 +120,7 @@ const QuestionForm = () => {
   // Add question to local list
   const handleAddQuestion = () => {
     if (!stripHtml(question).trim()) {
-      alert("Please enter the question.");
+      toast.error("Please enter the question.");
       return;
     }
 
@@ -133,21 +135,23 @@ const QuestionForm = () => {
     setShortAnswer("");
   };
 
+  const savedData = JSON.parse(localStorage.getItem("formData"));
+  console.log(savedData,"saveData")
   // Submit all questions to API
   const handleSubmitAllQuestions = async () => {
     if (questionsList.length === 0) {
-      alert("Please add at least one question.");
+      toast.error("Please add at least one question.");
       return;
     }
     const createdBy = localStorage.getItem('adminEmail')
-    const savedData = JSON.parse(localStorage.getItem("formData"));
+   
     const formattedQuestions = questionsList.map(formatQuestionForAPI);
 
     const payload = {
-      testName: savedData.name || "Untitled Test",
-      duration: savedData.sessionExam.endTime - savedData.sessionExam.startTime || 45,
-      passingMarks: formattedQuestions.length *2,
-      shuffle: true,  
+      testName: savedData.testName,
+      duration: savedData.duration,
+      passingMarks: Number(savedData.passingMarks),
+      shuffle:savedData.shuffle,  
       questions: formattedQuestions,
       eligibility: {
         required: savedData.eligibility?.required || false,
@@ -164,20 +168,25 @@ const QuestionForm = () => {
       createdBy
     };
 
-    try {
-      const res = await axiosInstance.post("test", payload);
+    console.log(payload,"payload")
 
-      if (!res) throw new Error();
-      alert("All questions submitted successfully!");
+    try {
+      const res = await axiosInstance.post("/test", payload);
+
+      if (!res) {
+        toast.error('Error occured while creating test, Please try again!')
+      };
+      toast.success("All questions submitted successfully!");
       setQuestionsList([]);
       navigate('/myTest')
     } catch {
-      alert("Failed to submit questions!");
+      toast.error("Failed to submit questions!");
     }
   };
 
   return (
     <div className="p-6 space-y-8 max-w-4xl mx-auto">
+        <ToastContainer />
       {/* Preview of added questions */}
       {questionsList.length > 0 && (
         <div className="mb-8">

@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
 import Cookies from 'js-cookie';
+import {  LogOut } from "lucide-react";
+import { Icon } from "@iconify-icon/react";
 
 const Navbar = ({ toggleSidebar }) => {
   const navigate = useNavigate()
   const email = localStorage.getItem('adminEmail')
   const [openProfile, setOpenProfile] = useState(false)
   const [profileIcon,setProfileIcon] = useState(false)
+  const dropdownRef = useRef(null)
 
   const fetchProfileData = async () => {
     const response = await axiosInstance.get(`/company/profile/${email}`);
@@ -17,9 +20,21 @@ const Navbar = ({ toggleSidebar }) => {
   const handleLogout = () => {
     Cookies.remove('token')
     localStorage.clear()
-
-
   }
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpenProfile(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     fetchProfileData();
@@ -30,9 +45,17 @@ const Navbar = ({ toggleSidebar }) => {
         {profileIcon || "U"}
       </h1>
       {
-        openProfile ? <div className="w-32 absolute top-14 bg-white z-40 shadow-2xl flex flex-col gap-2 p-2">
-        <Link  to="/account" className="px-2 hover:bg-zinc-200">My Account</Link>
-        <Link onClick={handleLogout} to="/home" className="px-2 hover:bg-zinc-200">Logout</Link>
+        openProfile ? <div className="w-48 absolute top-14 bg-white z-40 shadow-2xl flex flex-col gap-2 p-2">
+          <profileIcon/>
+        
+       <Link classNam="flex items-center" ref={dropdownRef }  to="/account" className="px-2 hover:bg-zinc-200"
+       >
+        <div className="flex items-center gap-2">
+        <Icon icon="mdi:account-circle-outline" width={24}/>
+        <span> My Account</span>
+        </div>
+       </Link>
+       <Link ref={dropdownRef }  onClick={handleLogout} to="/home" className="px-2 hover:bg-zinc-200">   <span className="flex gap-2"><LogOut className="h-6 w-6"/> Logout</span></Link>
         </div> : null
       }
 

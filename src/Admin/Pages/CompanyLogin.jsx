@@ -124,7 +124,8 @@ export default function CompanyLoginForm() {
               <div className="text-red-500 text-xs mt-1">{errors.password}</div>
             )}
           </div>
-          <div className="w-[90%] mt-10 text-center">
+          <Link to={'/forget-password'} className="w-[75%] text-md underline text-blue-500 flex justify-end">Forget Password</Link>
+          <div className="w-[90%] mt-5 text-center">
             <button
               type="submit"
               className="rounded-full bg-blue-600 hover:scale-105 text-white font-semibold px-20 py-2 text-lg transition-colors"

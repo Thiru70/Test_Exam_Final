@@ -61,7 +61,7 @@ export default function InformationForm() {
           </Link>
         </div>
 
-        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto w-full mt-16 md:mt-0">
+        <form onSubmit={handleSubmit}   className="max-w-2xl mx-auto w-full mt-16 md:mt-0">
           <h2 className="text-2xl font-bold mb-8">Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>

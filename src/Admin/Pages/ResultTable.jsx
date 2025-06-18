@@ -60,7 +60,7 @@ const ResultTable = () => {
                     className={`px-2 py-1 text-white rounded font-semibold ${result.status == 'passed' ? 'bg-green-500' : 'bg-red-500'
                       }`}
                   >
-                    {(result?.score/result?.totalMarks)*100 || 0}%
+                    {((result?.score/result?.totalMarks)*100).toFixed(2) || 0}%
                   </span>
                 </td>
                 <td className="px-4 py-2">{new Date(result.timestamp).toLocaleDateString()}</td>
