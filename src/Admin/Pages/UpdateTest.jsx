@@ -8,21 +8,21 @@ const UpdateTest = () => {
   const navigate = useNavigate()
   const { testId } = useParams();
   const [form, setForm] = useState({
-    testName: 'Aptitude Test',
-    duration: 45,
-    passingMarks: 5,
-    shuffle: true,
+    testName: '',
+    duration: '',
+    passingMarks: '',
+    shuffle: '',
     eligibility: {
-      required: true,
-      tenthPercentage: 60,
-      twelfthPercentage: 60,
+      required: '',
+      tenthPercentage: '',
+      twelfthPercentage: '',
     },
     sessionExam: {
-      isSession: true,
-      startDate: '2025-06-5',
-      endDate: '2025-06-10',
-      startTime: '09:00',
-      endTime: '11:00',
+      isSession: '',
+      startDate: '',
+      endDate: '',
+      startTime: '',
+      endTime: '',
     },
   });
 
@@ -73,8 +73,10 @@ const UpdateTest = () => {
     e.preventDefault();
     try {
       await axiosInstance.put(`/test/${testId}`, form);
-      toast.success('Test updated successfully!');
       navigate('/myTest')
+      setTimeout(()=>{
+        toast.success('Test updated successfully!');
+      },1000)
     } catch (error) {
       toast.error('Failed to update test.');
     }

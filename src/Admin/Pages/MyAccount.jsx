@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axiosInstance";
+import { ToastContainer,toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css"
 
 const ProfileForm = () => {
   const email = localStorage.getItem("adminEmail");
@@ -29,7 +31,7 @@ const ProfileForm = () => {
       axiosInstance.put(`/company/profile/${email}`, profileData)
         .then(res => {
           console.log("Saved successfully", res.data);
-          window.alert('Successfully updated the profile')
+          toast.success('Successfully updated the profile')
           setIsEditing(false);
         })
         .catch(err => {
@@ -42,6 +44,7 @@ const ProfileForm = () => {
 
   return (
     <div className="bg-gray-100 p-6 md:p-10">
+      <ToastContainer />
       {/* Header */}
       <div className="bg-blue-600 text-white py-4 px-6 rounded-t-lg flex justify-between items-center">
         <div className="w-full flex justify-between">

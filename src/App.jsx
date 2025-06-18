@@ -51,6 +51,7 @@ import InformationForm from './Admin/Pages/Information';
 import GradingCriteria from './Admin/Pages/GradingCriteria';
 import UpdateTest from './Admin/Pages/UpdateTest';
 import CompanyLoginForm from './Admin/Pages/CompanyLogin';
+import CompanyForgetPassword from './Admin/Pages/Forget-Password';
 
 // import FaceRecognition from './User/Components/FaceRecognition';
 
@@ -93,6 +94,7 @@ function App() {
         <Route path="/home" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/company-login" element={<CompanyLoginForm />} />
+        <Route path="/forget-password" element={<CompanyForgetPassword />} />
         <Route path="/information" element={<InformationForm />} />
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/otp-verification" element={<OtpVerification />} />

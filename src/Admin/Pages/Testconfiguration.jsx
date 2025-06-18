@@ -1,200 +1,251 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Result = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: '',
-    Category: '',
-    language: '',
+    testName: '',
+    duration: '',
+    passingMarks: '',
+    shuffle: '',
     eligibility: {
-      required: false,
+      required: '',
       tenthPercentage: '',
-      twelfthPercentage: ''
+      twelfthPercentage: '',
     },
     sessionExam: {
-      isSession: false,
+      isSession: '',
       startDate: '',
       endDate: '',
       startTime: '',
-      endTime: ''
-    }
+      endTime: '',
+    },
   });
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-
-    if (name.startsWith('eligibility.')) {
-      const key = name.split('.')[1];
-      setFormData(prev => {
-        const updated = {
-          ...prev,
-          eligibility: {
-            ...prev.eligibility,
-            [key]: type === 'checkbox' ? checked : value
-          }
-        };
-        localStorage.setItem("formData", JSON.stringify(updated));
-        return updated;
-      });
-
-    } else if (name.startsWith('sessionExam.')) {
-      const key = name.split('.')[1];
-      setFormData(prev => {
-        const updated = {
-          ...prev,
-          sessionExam: {
-            ...prev.sessionExam,
-            [key]: type === 'checkbox' ? checked : value
-          }
-        };
-        localStorage.setItem("formData", JSON.stringify(updated));
-        return updated;
-      });
-
+  
+    if (name in formData.eligibility) {
+      setFormData((prev) => ({
+        ...prev,
+        eligibility: {
+          ...prev.eligibility,
+          [name]: type === 'checkbox' ? checked : value,
+        },
+      }));
+    } else if (name in formData.sessionExam) {
+      setFormData((prev) => ({
+        ...prev,
+        sessionExam: {
+          ...prev.sessionExam,
+          [name]: type === 'checkbox' ? checked : value,
+        },
+      }));
     } else {
-      setFormData(prev => {
-        const updated = { ...prev, [name]: value };
-        localStorage.setItem("formData", JSON.stringify(updated));
-        return updated;
-      });
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value,
+      }));
     }
   };
+  
 
   const handleSave = () => {
-    // You can save the entire formData to localStorage or send to backend here
-    // localStorage.setItem('formData', JSON.stringify(formData));
-    navigate('/questionSet');
+    const { testName, duration,passingMarks,eligibility, sessionExam } = formData;
+
+    if (!testName.trim()) {
+      toast.error("Please enter the Test Name.");
+      return;
+    }
+
+    if (!duration) {
+      toast.error("Please enter the test duration");
+      return;
+    }
+
+    if (!passingMarks) {
+      toast.error("Please enter the passing marks");
+      return;
+    }
+    
+    if (eligibility) {
+      if (!eligibility.tenthPercentage || isNaN(eligibility.tenthPercentage)) {
+        toast.error("Please enter a valid 10th Percentage.");
+        return;
+      }
+      if (
+        !eligibility.twelfthPercentage ||
+        isNaN(eligibility.twelfthPercentage)
+      ) {
+        toast.error("Please enter a valid 12th Percentage.");
+        return;
+      }
+    }
+
+    if (sessionExam.isSession) {
+      if (!sessionExam.startDate) {
+        toast.error("Please enter the session start date.");
+        return;
+      }
+      if (!sessionExam.endDate) {
+        toast.error("Please enter the session end date.");
+        return;
+      }
+      if (!sessionExam.startTime) {
+        toast.error("Please enter the session start time.");
+        return;
+      }
+      if (!sessionExam.endTime) {
+        toast.error("Please enter the session end time.");
+        return;
+      }
+    }
+    localStorage.setItem('formData',JSON.stringify(formData))
+    navigate("/questionSet");
   };
 
   return (
     <div className="p-6">
-  {/* Test Name */}
-  <div className="mt-2">
-    <label className="block mb-1 font-semibold mt-2">Test Name</label>
-    <input
-      type="text"
-      name="name"
-      value={formData.name}
-      onChange={handleInputChange}
-      className="w-full border-b border-[#000000] rounded px-3 py-2 focus:outline-none"
-      required
-    />
-  </div>
+      <ToastContainer />
+      {/* Test Name */}
+      <div>
+          <label className="block text-base font-medium mb-1">Test Name</label>
+          <input
+            name="testName"
+            value={formData.testName}
+            onChange={handleInputChange}
+            placeholder="Test Name"
+            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-400"
+          />
+        </div>
+        <div>
+          <label className="block text-base font-medium mb-1">Duration</label>
+          <input
+            name="duration"
+            type="number"
+            value={formData.duration}
+            onChange={handleInputChange}
+            placeholder="Duration"
+            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-400"
+          />
+        </div>
+        <div>
+          <label className="block text-base font-medium mb-1">Passing Marks</label>
+          <input
+            name="passingMarks"
+            type="number"
+            value={formData.passingMarks}
+            onChange={handleInputChange}
+            placeholder="Passing Marks"
+            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-400"
+          />
+        </div>
+        <div className="flex items-center space-x-2">
+          <input
+            name="shuffle"
+            type="checkbox"
+            checked={formData.shuffle}
+            onChange={handleInputChange}
+            className="h-4 w-4"
+          />
+          <label className="text-base font-medium">Shuffle</label>
+        </div>
 
-  {/* Eligibility Section */}
-  <div className="mt-4 border-t pt-4">
-    <h3 className="font-bold mb-2">Eligibility</h3>
-    <label className="flex items-center mb-2">
-      <input
-        type="checkbox"
-        name="eligibility.required"
-        checked={formData.eligibility.required}
-        onChange={handleInputChange}
-        className="mr-2"
-      />
-      Required
-    </label>
-    <div className="flex gap-4">
-      <div className="w-1/2">
-        <label className="block mb-1">10th Percentage</label>
-        <input
-          type="number"
-          name="eligibility.tenthPercentage"
-          value={formData.eligibility.tenthPercentage}
-          onChange={handleInputChange}
-          className="w-full border-b border-[#000000] rounded px-3 py-2 focus:outline-none"
-          min="0"
-          max="100"
-        />
-      </div>
-      <div className="w-1/2">
-        <label className="block mb-1">12th Percentage</label>
-        <input
-          type="number"
-          name="eligibility.twelfthPercentage"
-          value={formData.eligibility.twelfthPercentage}
-          onChange={handleInputChange}
-          className="w-full border-b border-[#000000] rounded px-3 py-2 focus:outline-none"
-          min="0"
-          max="100"
-        />
-      </div>
+        <h4 className="text-lg font-semibold mt-6 mb-2">Eligibility</h4>
+        <div className="flex items-center space-x-2">
+          <input
+            name="required"
+            type="checkbox"
+            checked={formData.eligibility.required}
+            onChange={handleInputChange}
+            className="h-4 w-4"
+          />
+          <label className="text-base font-medium">Required</label>
+        </div>
+        <div>
+          <label className="block text-base font-medium mb-1">10th %</label>
+          <input
+            name="tenthPercentage"
+            type="number"
+            value={formData.eligibility.tenthPercentage}
+            onChange={handleInputChange}
+            placeholder="10th %"
+            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-400"
+          />
+        </div>
+        <div>
+          <label className="block text-base font-medium mb-1">12th %</label>
+          <input
+            name="twelfthPercentage"
+            type="number"
+            value={formData.eligibility.twelfthPercentage}
+            onChange={handleInputChange}
+            placeholder="12th %"
+            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-400"
+          />
+        </div>
+
+        <h4 className="text-lg font-semibold mt-6 mb-2">Session Exam</h4>
+        <div className="flex items-center space-x-2">
+          <input
+            name="isSession"
+            type="checkbox"
+            checked={formData.sessionExam.isSession}
+            onChange={handleInputChange}
+            className="h-4 w-4"
+          />
+          <label className="text-base font-medium">Is Session</label>
+        </div>
+        <div>
+          <label className="block text-base font-medium mb-1">Start Date</label>
+          <input
+            name="startDate"
+            type="date"
+            value={formData.sessionExam.startDate}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-400"
+          />
+        </div>
+        <div>
+          <label className="block text-base font-medium mb-1">End Date</label>
+          <input
+            name="endDate"
+            type="date"
+            value={formData.sessionExam.endDate}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-400"
+          />
+        </div>
+        <div>
+          <label className="block text-base font-medium mb-1">Start Time</label>
+          <input
+            name="startTime"
+            type="time"
+            value={formData.sessionExam.startTime}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-400"
+          />
+        </div>
+        <div>
+          <label className="block text-base font-medium mb-1">End Time</label>
+          <input
+            name="endTime"
+            type="time"
+            value={formData.sessionExam.endTime}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-400"
+          />
+        </div>
+      {/* Save Button */}
+      <button
+        className="px-5 py-2 bg-[#0079EA] text-[#fff] rounded-md mt-5"
+        onClick={handleSave}
+      >
+        Save
+      </button>
     </div>
-  </div>
-
-  {/* Session Exam Section */}
-  <div className="mt-4 border-t pt-4">
-    <h3 className="font-bold mb-2">Session Exam</h3>
-    <label className="flex items-center mb-2">
-      <input
-        type="checkbox"
-        name="sessionExam.isSession"
-        checked={formData.sessionExam.isSession}
-        onChange={handleInputChange}
-        className="mr-2"
-      />
-      Is Session Exam
-    </label>
-
-    {/* Start & End Dates in one row */}
-    <div className="flex gap-4 mb-2">
-      <div className="w-1/2">
-        <label className="block mb-1">Start Date</label>
-        <input
-          type="date"
-          name="sessionExam.startDate"
-          value={formData.sessionExam.startDate}
-          onChange={handleInputChange}
-          className="w-full border-b border-[#000000] rounded px-3 py-2 focus:outline-none"
-        />
-      </div>
-      <div className="w-1/2">
-        <label className="block mb-1">End Date</label>
-        <input
-          type="date"
-          name="sessionExam.endDate"
-          value={formData.sessionExam.endDate}
-          onChange={handleInputChange}
-          className="w-full border-b border-[#000000] rounded px-3 py-2 focus:outline-none"
-        />
-      </div>
-    </div>
-
-    {/* Start & End Times in one row */}
-    <div className="flex gap-4">
-      <div className="w-1/2">
-        <label className="block mb-1">Start Time</label>
-        <input
-          type="time"
-          name="sessionExam.startTime"
-          value={formData.sessionExam.startTime}
-          onChange={handleInputChange}
-          className="w-full border-b border-[#000000] rounded px-3 py-2 focus:outline-none"
-        />
-      </div>
-      <div className="w-1/2">
-        <label className="block mb-1">End Time</label>
-        <input
-          type="time"
-          name="sessionExam.endTime"
-          value={formData.sessionExam.endTime}
-          onChange={handleInputChange}
-          className="w-full border-b border-[#000000] rounded px-3 py-2 focus:outline-none"
-        />
-      </div>
-    </div>
-  </div>
-
-  {/* Save Button */}
-  <button
-    className="px-5 py-2 bg-[#0079EA] text-[#fff] rounded-md mt-5"
-    onClick={handleSave}
-  >
-    Save
-  </button>
-</div>
-
   );
 };
 

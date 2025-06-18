@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import Folder from "../../Asstes/Folder.png";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Dialog } from "primereact/dialog";
 import axiosInstance from "../../utils/axiosInstance";
 import { Edit, Trash } from "lucide-react";
 import * as XLSX from "xlsx";
-import { ToastContainer,toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const MyTest = () => {
   const navigate = useNavigate();
@@ -22,12 +22,12 @@ const MyTest = () => {
   const fetchAllTests = async () => {
     const response = await axiosInstance.get(`/tests?createdBy=${email}`);
     setTestData(response.data);
-    toast.success('Successfully fetched all tests.')
+    // toast.success("Successfully fetched all tests.");
   };
 
   const handleTestDelete = async (getCurrentTestId) => {
-    const result = await axiosInstance.delete(`/test/${getCurrentTestId}`);
-    toast.success('Successfully deleted the test')
+    await axiosInstance.delete(`/test/${getCurrentTestId}`);
+    toast.success("Successfully deleted the test");
     setCurrentTestId(getCurrentTestId);
   };
 
@@ -42,17 +42,18 @@ const MyTest = () => {
   const [timeStart, setTimeStart] = useState("");
   const [timeEnd, setTimeEnd] = useState("");
   const fileInputRef = useRef();
+  const dropdownRef = useRef();
 
   const handleBrowseClick = () => fileInputRef.current.click();
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) {
-      toast.error('File not uploaded, Please try again!');
-      return 
+      toast.error("File not uploaded, Please try again!");
+      return;
     }
 
-    toast.success('Excel file uploaded successfully')
+    toast.success("Excel file uploaded successfully");
     const reader = new FileReader();
     reader.onload = (event) => {
       const binaryStr = event.target.result;
@@ -61,17 +62,18 @@ const MyTest = () => {
       const sheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-      console.log(jsonData, "jsonData");
       const questions = jsonData.map((q) => {
-        const isMCQ = (q.type || '').toLowerCase() === 'mcq';
+        const isMCQ = (q.type || "").toLowerCase() === "mcq";
         return {
           question: q.question,
           type: q.type,
           ...(isMCQ && {
-            options: [q.option1, q.option2, q.option3, q.option4].filter(opt => !!opt)
+            options: [q.option1, q.option2, q.option3, q.option4].filter(
+              (opt) => !!opt
+            ),
           }),
           answer: q.answer,
-          difficulty: (q.difficulty || '').toLowerCase(),
+          difficulty: (q.difficulty || "").toLowerCase(),
         };
       });
       setExcelQuestions(questions);
@@ -103,21 +105,35 @@ const MyTest = () => {
     };
 
     try {
-      const response = await axiosInstance.post("/test", payload);
-      toast.success('successfully created new test')
+      await axiosInstance.post("/test", payload);
+      toast.success("successfully created new test");
       setDocumentOpen(false);
     } catch (error) {
-      toast.error("Upload failed:", error)
+      toast.error("Upload failed:", error);
     }
   };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
   useEffect(() => {
     fetchAllTests();
-  }, [currentTestId]);
+  }, [currentTestId, documentOpen]);
 
   return (
     <>
-    <ToastContainer />
       <div className="p-2">
+        <ToastContainer />
         <div className="flex justify-end gap-3 p-5">
           <button
             onClick={() => setOpen(!open)}
@@ -126,7 +142,10 @@ const MyTest = () => {
             Create New Test
           </button>
           {open && (
-            <div className="absolute right-2 top-36 mt-2 w-48 bg-[#F4F4F4] border rounded-md shadow z-50">
+            <div
+              ref={dropdownRef}
+              className="absolute right-2 top-36 mt-2 w-48 bg-[#F4F4F4] border rounded-md shadow z-50"
+            >
               <div
                 onClick={() => navigate("/testconfiguration")}
                 className="px-4 py-2 text-sm hover:bg-gray-100 border-b-2 cursor-pointer"
@@ -186,7 +205,7 @@ const MyTest = () => {
           visible={documentOpen}
           style={{ width: "40rem" }}
           onHide={() => setDocumentOpen(false)}
-          className="bg-white p-6"
+          className="bg-white p-6 z-40 shadow-2xl"
         >
           <div className="space-y-4">
             <p className="font-semibold">
@@ -196,7 +215,16 @@ const MyTest = () => {
               Supports single-choice, multiple-choice and description questions
             </p>
             <p>Add media afterwards</p>
-            <p>For best results, use our templates</p>
+            <p className="text-sm text-gray-600">
+              For best results, use our template:
+              <a
+                href="./MCQ_Questions.xlsx"
+                download
+                className="text-blue-600 underline ml-1"
+              >
+                Download Template
+              </a>
+            </p>
 
             <div>
               <label className="font-semibold">Test Name</label>
