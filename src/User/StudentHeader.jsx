@@ -1,9 +1,32 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { User } from "lucide-react";
 
 const Header = ({ activeItem, setActiveItem }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [studentData, setStudentData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  
+  // Get student ID from localStorage or use the one from API response
   const studentId = localStorage.getItem('student_id');
+  
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      try {
+        const response = await fetch(`https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/student/${studentId}`);
+        const data = await response.json();
+        
+        if (data && data.student) {
+          setStudentData(data.student);
+        }
+      } catch (error) {
+        console.error('Error fetching student data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudentData();
+  }, [studentId]);
   
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -11,18 +34,41 @@ const Header = ({ activeItem, setActiveItem }) => {
   
   const handleProfileClick = () => {
     setIsDropdownOpen(false);
-    setActiveItem('Profile'); // This will trigger the same ProfileContent component as Sidebar
+    setActiveItem('Profile');
   };
   
   const handleLogoutClick = () => {
     setIsDropdownOpen(false);
     // Clear any user data or perform logout cleanup here
+    localStorage.clear();
     console.log('Logout clicked');
     
     // Navigate to StudentLogin page
     window.location.href = '/StudentLogin';
   };
-  
+
+  // Get the first letter of student's name
+  const getFirstLetter = () => {
+    if (studentData?.full_name) {
+      return studentData.full_name.charAt(0).toUpperCase();
+    }
+    return 'S'; // Default to 'S' for Student if no name
+  };
+
+  if (loading) {
+    return (
+      <header className="bg-white shadow-sm py-3 px-6 flex items-center justify-between">
+        <div className="flex items-center">
+          <h1 className="text-lg font-semibold text-gray-800">Dashboard</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-gray-300 rounded-full animate-pulse"></div>
+          <div className="h-4 bg-gray-300 rounded w-24 animate-pulse"></div>
+        </div>
+      </header>
+    );
+  }
+
   return (
     <>
       <header className="bg-white shadow-sm py-3 px-6 flex items-center justify-between">
@@ -37,9 +83,18 @@ const Header = ({ activeItem, setActiveItem }) => {
             className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
           >
             <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <User size={16} className="text-white" />
+              <span className="text-sm font-bold text-white">
+                {getFirstLetter()}
+              </span>
             </div>
-            <span className="text-sm font-medium text-gray-700">{studentId}</span>
+            <div className="flex flex-col items-start">
+              <span className="text-sm font-medium text-gray-800">
+                {studentData?.full_name || 'Student'}
+              </span>
+              <span className="text-xs text-gray-500">
+                {studentData?.student_id || studentId}
+              </span>
+            </div>
             <svg 
               className={`w-4 h-4 text-gray-500 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
               fill="none" 

@@ -1,6 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Play, Video, Mic, MicOff, Camera, Move, Loader2, Maximize } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Play, Video, Mic, MicOff, Camera, Move, Loader2, Maximize, AlertTriangle } from 'lucide-react';
 import SimpleCodeEditor from './MonacoCodeEditer';
+import LiveFaceMonitoring from './LiveMonitoring';
 
 const CodingSection = ({ onNavigateToInterview }) => {
   // Core state
@@ -18,41 +19,104 @@ const CodingSection = ({ onNavigateToInterview }) => {
   const [testReady, setTestReady] = useState(false);
   const [fullscreenViolations, setFullscreenViolations] = useState(0);
 
-  // NEW: Copy-paste violation state
+  // Copy-paste violation state
   const [copyPasteViolations, setCopyPasteViolations] = useState(0);
   const [showCopyPasteWarning, setShowCopyPasteWarning] = useState(false);
+  const [lastViolationTime, setLastViolationTime] = useState(0);
+
+  // Face monitoring violations
+  const [faceMonitoringViolations, setFaceMonitoringViolations] = useState(0);
+  const [showFaceViolationWarning, setShowFaceViolationWarning] = useState(false);
 
   // UI state
-  const [isAudioOn, setIsAudioOn] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [showFullscreenPopup, setShowFullscreenPopup] = useState(false);
   const [showViolationWarning, setShowViolationWarning] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [allTestResults, setAllTestResults] = useState({});
+  const TEST_ID =  localStorage.getItem('currentTestId');
 
-  // Camera state
-  const [cameraPosition, setCameraPosition] = useState({
-    x: window.innerWidth - 280,
-    y: window.innerHeight - 200
+  // Live face monitoring position - Initialize to bottom-right corner
+  const [faceMonitorPosition, setFaceMonitorPosition] = useState({
+    x: window.innerWidth - 320, // 320px from right edge (300px width + 20px margin)
+    y: window.innerHeight - 240  // 240px from bottom edge (220px height + 20px margin)
   });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  const videoRef = useRef(null);
-  const streamRef = useRef(null);
-  const cameraRef = useRef(null);
   const timerRef = useRef(null);
+  const cleanupRef = useRef(null);
+
+  // Update position when window resizes to keep it in bottom-right
+  useEffect(() => {
+    const handleResize = () => {
+      setFaceMonitorPosition(prev => ({
+        x: Math.min(prev.x, window.innerWidth - 320),
+        y: Math.min(prev.y, window.innerHeight - 240)
+      }));
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Test data for SimpleCodeEditor
-  const getTestSessionData = () => ({
+  const getTestSessionData = useCallback(() => ({
     userId: localStorage.getItem('student_id'),
-    testId: "01JWQGRNXH1VBMYSD893DG9TM",
+    testId: TEST_ID,
     startTime: testStartTime,
     warningCount: fullscreenViolations,
     copyPasteViolations: copyPasteViolations,
+    faceMonitoringViolations: faceMonitoringViolations,
     timeRemaining,
     totalDuration: testData?.duration * 60 || 0
-  });
+  }), [testStartTime, fullscreenViolations, copyPasteViolations, faceMonitoringViolations, timeRemaining, testData?.duration]);
+
+  // Handle face monitoring violations
+  const handleFaceViolation = useCallback((violation) => {
+    const newViolationCount = faceMonitoringViolations + 1;
+    setFaceMonitoringViolations(newViolationCount);
+    setShowFaceViolationWarning(true);
+
+    // Auto-hide warning after 3 seconds
+    setTimeout(() => {
+      setShowFaceViolationWarning(false);
+    }, 3000);
+
+    // Optional: Auto-submit after 5 violations
+    if (newViolationCount >= 5) {
+      setTimeout(() => handleSubmitTest(true), 2000);
+    }
+
+    console.log('Face monitoring violation:', violation);
+  }, [faceMonitoringViolations]);
+
+  // Copy-paste violation handler with debouncing
+  const handleCopyPasteViolation = useCallback((type) => {
+    const currentTime = Date.now();
+    const timeSinceLastViolation = currentTime - lastViolationTime;
+    
+    // Prevent rapid successive violations (debounce for 1 second)
+    if (timeSinceLastViolation < 1000) {
+      return;
+    }
+    
+    setLastViolationTime(currentTime);
+    
+    const newViolationCount = copyPasteViolations + 1;
+    setCopyPasteViolations(newViolationCount);
+    setShowCopyPasteWarning(true);
+
+    console.log(`Copy-paste violation detected: ${type}. Total violations: ${newViolationCount}`);
+
+    // Auto-hide warning after 3 seconds
+    setTimeout(() => {
+      setShowCopyPasteWarning(false);
+    }, 3000);
+
+    // Optional: Auto-submit after 5 violations
+    if (newViolationCount >= 5) {
+      setTimeout(() => handleSubmitTest(true), 2000);
+    }
+  }, [copyPasteViolations, lastViolationTime]);
 
   // Initialize code templates when test data is loaded
   useEffect(() => {
@@ -66,19 +130,19 @@ const CodingSection = ({ onNavigateToInterview }) => {
   }, [testData]);
 
   // Handler for code changes
-  const handleCodeChange = (questionIndex, newCode) => {
+  const handleCodeChange = useCallback((questionIndex, newCode) => {
     setQuestionCodes(prev => ({
       ...prev,
       [questionIndex]: newCode
     }));
-  };
+  }, []);
 
   // Fetch test data
   useEffect(() => {
     const fetchTestData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/coding-test/01JWQGRNXH1VBMYSD893DG9TM');
+        const response = await fetch(`https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/coding-test/${TEST_ID}`);
 
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
@@ -97,21 +161,44 @@ const CodingSection = ({ onNavigateToInterview }) => {
   }, []);
 
   // Initialize test
-  const initializeTest = () => {
+  const initializeTest = useCallback(() => {
     if (testData?.duration) {
       const durationInSeconds = testData.duration * 60;
       setTimeRemaining(durationInSeconds);
       setTestStartTime(new Date().toISOString());
       setTestReady(true);
     }
-  };
+  }, [testData?.duration]);
 
-  // FIXED: Timer effect - simplified and more robust
-  useEffect(() => {
-    let interval;
+  // Handle test submission
+  const handleSubmitTest = useCallback((autoSubmit = false) => {
+    // Clear timer
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     
+    // Cleanup security restrictions
+    if (cleanupRef.current) {
+      cleanupRef.current();
+      cleanupRef.current = null;
+    }
+    
+    // Show success popup
+    setShowSuccessPopup(true);
+    
+    // Navigate after 3 seconds
+    setTimeout(() => {
+      if (onNavigateToInterview) {
+        onNavigateToInterview();
+      }
+    }, 3000);
+  }, [onNavigateToInterview]);
+
+  // Timer effect - simplified and more robust
+  useEffect(() => {
     if (testReady && timeRemaining > 0) {
-      interval = setInterval(() => {
+      timerRef.current = setInterval(() => {
         setTimeRemaining(prev => {
           if (prev <= 1) {
             handleSubmitTest(true);
@@ -123,58 +210,45 @@ const CodingSection = ({ onNavigateToInterview }) => {
     }
 
     return () => {
-      if (interval) {
-        clearInterval(interval);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
       }
     };
-  }, [testReady]); // Only depend on testReady
-
-  // NEW: Copy-paste detection and prevention
-  const handleCopyPasteViolation = (type) => {
-    const newViolationCount = copyPasteViolations + 1;
-    setCopyPasteViolations(newViolationCount);
-    setShowCopyPasteWarning(true);
-
-    // Auto-hide warning after 2 seconds
-    setTimeout(() => {
-      setShowCopyPasteWarning(false);
-    }, 2000);
-
-    // Optional: Auto-submit after 5 violations
-    if (newViolationCount >= 5) {
-      setTimeout(() => handleSubmitTest(true), 2000);
-    }
-  };
+  }, [testReady, handleSubmitTest]);
 
   // Security restrictions
-  const applySecurityRestrictions = () => {
+  const applySecurityRestrictions = useCallback(() => {
     const preventActions = (e) => {
       const restrictedKeys = [
         'F12', 'F5',
-        ...(e.ctrlKey ? ['r', 'R', 'w', 'W', 't', 'T', 'n', 'N', 'u', 'U', 'c', 'C', 'v', 'V', 'x', 'X', 'a', 'A'] : []),
+        ...(e.ctrlKey ? ['r', 'R', 'w', 'W', 't', 'T', 'n', 'N', 'u', 'U'] : []),
         ...(e.ctrlKey && e.shiftKey ? ['I', 'i'] : []),
         ...(e.altKey ? ['F4'] : [])
       ];
 
-      if (restrictedKeys.includes(e.key)) {
+      // Handle copy-paste key combinations separately with better detection
+      if (e.ctrlKey && ['c', 'C', 'v', 'V', 'x', 'X'].includes(e.key)) {
         e.preventDefault();
         
-        // NEW: Detect copy-paste attempts
-        if (e.ctrlKey && ['c', 'C', 'v', 'V', 'x', 'X'].includes(e.key)) {
+        // Only trigger violation on keydown, not keyup
+        if (e.type === 'keydown') {
           const actionType = ['c', 'C'].includes(e.key) ? 'copy' : 
                            ['v', 'V'].includes(e.key) ? 'paste' : 'cut';
           handleCopyPasteViolation(actionType);
         }
-        
+        return false;
+      }
+
+      if (restrictedKeys.includes(e.key)) {
+        e.preventDefault();
         return false;
       }
     };
 
     const preventContextMenu = (e) => e.preventDefault();
     
-    
     const preventCopyPaste = (e) => {
-     
       if (['copy', 'paste', 'cut'].includes(e.type)) {
         e.preventDefault();
         handleCopyPasteViolation(e.type);
@@ -194,13 +268,13 @@ const CodingSection = ({ onNavigateToInterview }) => {
     document.addEventListener('keydown', preventActions);
     document.addEventListener('contextmenu', preventContextMenu);
     
-    // NEW: Add copy-paste event listeners
+    // Add copy-paste event listeners
     document.addEventListener('copy', preventCopyPaste);
     document.addEventListener('paste', preventCopyPaste);
     document.addEventListener('cut', preventCopyPaste);
 
-    // Cleanup function
-    window.testCleanup = () => {
+    // Store cleanup function in ref
+    cleanupRef.current = () => {
       window.removeEventListener('beforeunload', preventNavigation);
       document.removeEventListener('keydown', preventActions);
       document.removeEventListener('contextmenu', preventContextMenu);
@@ -209,186 +283,109 @@ const CodingSection = ({ onNavigateToInterview }) => {
       document.removeEventListener('cut', preventCopyPaste);
       document.body.style.userSelect = '';
     };
-  };
+  }, [handleCopyPasteViolation]);
 
   // Fullscreen handlers
-  const handleEnableFullscreen = async () => {
+  const handleEnableFullscreen = useCallback(async () => {
     try {
       await document.documentElement.requestFullscreen();
       setIsFullScreen(true);
       setShowFullscreenPopup(false);
-      startVideo();
       initializeTest();
       applySecurityRestrictions();
     } catch (err) {
       console.error('Failed to enter fullscreen:', err);
       alert('Fullscreen is required to start the test. Please try again.');
     }
-  };
+  }, [initializeTest, applySecurityRestrictions]);
 
-// FIXED: Fullscreen change handler - properly manages warning visibility
-useEffect(() => {
-  const handleFullScreenChange = () => {
-    const isCurrentlyFullscreen = !!document.fullscreenElement;
-    setIsFullScreen(isCurrentlyFullscreen);
+  // Fullscreen change handler - fixed to prevent infinite loops
+  useEffect(() => {
+    const handleFullScreenChange = () => {
+      const isProgrammaticFullscreen = !!document.fullscreenElement;
+      const isBrowserFullscreen = window.innerHeight === screen.height && window.innerWidth === screen.width;
+      const isCurrentlyFullscreen = isProgrammaticFullscreen || isBrowserFullscreen;
+      
+      // Only update state if it actually changed
+      setIsFullScreen(prev => {
+        if (prev === isCurrentlyFullscreen) return prev;
+        
+        if (testReady && !isCurrentlyFullscreen && prev === true) {
+          // User exited fullscreen - show violation warning
+          setFullscreenViolations(prevViolations => {
+            const newViolationCount = prevViolations + 1;
+            setShowViolationWarning(true);
 
-    if (testReady && !isCurrentlyFullscreen) {
-      // User exited fullscreen - show violation warning
-      const newViolationCount = fullscreenViolations + 1;
-      setFullscreenViolations(newViolationCount);
-      setShowViolationWarning(true);
+            if (newViolationCount >= 3) {
+              // Auto-submit after 3 violations
+              setTimeout(() => handleSubmitTest(true), 2000);
+            } else {
+              // Try to return to fullscreen after 3 seconds
+              setTimeout(async () => {
+                try {
+                  if (!document.fullscreenElement) {
+                    await document.documentElement.requestFullscreen();
+                  }
+                } catch (err) {
+                  console.error('Failed to re-enter fullscreen:', err);
+                }
+                setShowViolationWarning(false);
+              }, 3000);
+            }
 
-      if (newViolationCount >= 3) {
-        // Auto-submit after 3 violations
-        setTimeout(() => handleSubmitTest(true), 2000);
-      } else {
-        // Try to return to fullscreen after 3 seconds
-        setTimeout(async () => {
-          try {
-            await document.documentElement.requestFullscreen();
-            setIsFullScreen(true);
-          } catch (err) {
-            console.error('Failed to re-enter fullscreen:', err);
-          }
+            return newViolationCount;
+          });
+        } else if (testReady && isCurrentlyFullscreen && prev === false) {
+          // User returned to fullscreen - hide any warnings
           setShowViolationWarning(false);
-        }, 3000);
-      }
-    } else if (testReady && isCurrentlyFullscreen) {
-      // User returned to fullscreen - hide any warnings
-      setShowViolationWarning(false);
-    }
-  };
-
-  document.addEventListener('fullscreenchange', handleFullScreenChange);
-
-  return () => {
-    document.removeEventListener('fullscreenchange', handleFullScreenChange);
-    if (window.testCleanup) window.testCleanup();
-  };
-}, [testReady, fullscreenViolations]);
-
-  // Video stream management
-  const startVideo = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: isAudioOn
-      });
-      if (videoRef.current) videoRef.current.srcObject = stream;
-      streamRef.current = stream;
-    } catch (err) {
-      console.error('Error accessing camera:', err);
-      setError('Camera access denied');
-    }
-  };
-
-  const toggleAudio = async () => {
-    if (streamRef.current) {
-      const audioTracks = streamRef.current.getAudioTracks();
-      if (audioTracks.length > 0) {
-        audioTracks[0].enabled = !isAudioOn;
-        setIsAudioOn(!isAudioOn);
-      } else if (!isAudioOn) {
-        try {
-          const newStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-          if (videoRef.current) videoRef.current.srcObject = newStream;
-          streamRef.current = newStream;
-          setIsAudioOn(true);
-        } catch (err) {
-          console.error('Error accessing microphone:', err);
         }
-      }
-    }
-  };
 
-  // Cleanup video stream
+        return isCurrentlyFullscreen;
+      });
+    };
+
+    // Listen to fullscreen events
+    document.addEventListener('fullscreenchange', handleFullScreenChange);
+    window.addEventListener('resize', handleFullScreenChange);
+    
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullScreenChange);
+      window.removeEventListener('resize', handleFullScreenChange);
+    };
+  }, [testReady, handleSubmitTest]);
+
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+      if (cleanupRef.current) {
+        cleanupRef.current();
       }
     };
   }, []);
 
-  // Camera dragging
-  const handleMouseDown = (e) => {
-    setIsDragging(true);
-    const rect = cameraRef.current.getBoundingClientRect();
-    setDragOffset({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    });
-  };
-
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (isDragging) {
-        const newX = Math.max(0, Math.min(e.clientX - dragOffset.x, window.innerWidth - 264));
-        const newY = Math.max(0, Math.min(e.clientY - dragOffset.y, window.innerHeight - 180));
-        setCameraPosition({ x: newX, y: newY });
-      }
-    };
-
-    const handleMouseUp = () => setIsDragging(false);
-
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isDragging, dragOffset]);
-
   // Navigation
-  const goToPrevious = () => {
+  const goToPrevious = useCallback(() => {
     if (currentQuestionIndex > 0) setCurrentQuestionIndex(currentQuestionIndex - 1);
-  };
+  }, [currentQuestionIndex]);
 
-  const goToNext = () => {
+  const goToNext = useCallback(() => {
     if (testData && currentQuestionIndex < testData.questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
-  };
+  }, [testData, currentQuestionIndex]);
 
-  const handleTestResults = (results) => {
+  const handleTestResults = useCallback((results) => {
     setAllTestResults(prev => ({
       ...prev,
       [results.questionIndex]: results
     }));
-  };
-
-  // NEW: Handle test submission
-  const handleSubmitTest = (autoSubmit = false) => {
-    // Clear timer
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
-    
-    // Cleanup security restrictions
-    if (window.testCleanup) {
-      window.testCleanup();
-    }
-    
-    // Stop video stream
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-    }
-    
-    // Show success popup
-    setShowSuccessPopup(true);
-    
-    // Navigate after 3 seconds
-    setTimeout(() => {
-      if (onNavigateToInterview) {
-        onNavigateToInterview();
-      }
-    }, 3000);
-  };
+  }, []);
 
   // Utility functions
-  const formatTime = (seconds) => {
+  const formatTime = useCallback((seconds) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
@@ -397,25 +394,25 @@ useEffect(() => {
       return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
     return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
-  const getTimerColor = () => {
+  const getTimerColor = useCallback(() => {
     const totalDuration = testData?.duration * 60 || 0;
     const percentage = (timeRemaining / totalDuration) * 100;
 
     if (percentage <= 10) return 'text-red-600 bg-red-100';
     if (percentage <= 25) return 'text-orange-600 bg-orange-100';
     return 'text-green-600 bg-green-100';
-  };
+  }, [testData?.duration, timeRemaining]);
 
-  const getDifficultyColor = (difficulty) => {
+  const getDifficultyColor = useCallback((difficulty) => {
     const colors = {
       easy: 'text-green-600 bg-green-100',
       medium: 'text-yellow-600 bg-yellow-100',
       hard: 'text-red-600 bg-red-100'
     };
     return colors[difficulty?.toLowerCase()] || 'text-gray-600 bg-gray-100';
-  };
+  }, []);
 
   // Loading state
   if (loading) {
@@ -490,6 +487,7 @@ useEffect(() => {
               <p>✓ Camera and screen monitoring will be enabled</p>
               <p>✓ Navigation restrictions will be applied</p>
               <p>✓ Copy-paste restrictions will be enforced</p>
+              <p>✓ Live face monitoring will be activated</p>
             </div>
           </div>
         </div>
@@ -505,7 +503,7 @@ useEffect(() => {
               <div className="flex items-center gap-6">
                 <div className="text-sm">Total Marks: {testData?.totalMarks}</div>
                 <div className="text-sm">
-                  Violations: FS({fullscreenViolations}/3)
+                  Violations: FS({fullscreenViolations}/3) | FM({faceMonitoringViolations}/5) | CP({copyPasteViolations}/5)
                 </div>
                 <div className={`px-4 py-2 rounded-lg font-bold text-lg ${getTimerColor()}`}>
                   ⏰ {formatTime(timeRemaining)}
@@ -594,7 +592,28 @@ useEffect(() => {
             onCodeChange={(newCode) => handleCodeChange(currentQuestionIndex, newCode)}
           />
 
-          {/* NEW: Copy-Paste Violation Warning */}
+          {/* Live Face Monitoring Widget - Positioned at bottom-right and draggable */}
+          <LiveFaceMonitoring
+            isActive={testReady}
+            position={faceMonitorPosition}
+            onPositionChange={setFaceMonitorPosition}
+            onViolation={handleFaceViolation}
+            style={{
+              position: 'fixed',
+              left: `${faceMonitorPosition.x}px`,
+              top: `${faceMonitorPosition.y}px`,
+              zIndex: 90,
+              width: '300px',
+              height: '220px',
+              backgroundColor: 'white',
+              border: '2px solid #3b82f6',
+              borderRadius: '12px',
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+              cursor: 'move'
+            }}
+          />
+
+          {/* Copy-Paste Violation Warning */}
           {showCopyPasteWarning && (
             <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-red-600 text-white p-6 rounded-lg shadow-2xl z-[105] max-w-sm">
               <div className="text-center">
@@ -608,66 +627,30 @@ useEffect(() => {
                 </p>
                 <div className="mt-3 bg-red-700 rounded-full h-1">
                   <div 
-                    className="bg-yellow-400 h-1 rounded-full transition-all duration-2000"
-                    style={{ width: '100%', animation: 'shrink 2s linear forwards' }}
+                    className="bg-yellow-400 h-1 rounded-full transition-all duration-[3000ms]"
+                    style={{ width: '100%', animation: 'shrink 3s linear forwards' }}
                   ></div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Draggable Camera Widget */}
-          <div
-            ref={cameraRef}
-            className="fixed z-50 cursor-move"
-            style={{
-              left: `${cameraPosition.x}px`,
-              top: `${cameraPosition.y}px`,
-              userSelect: 'none'
-            }}
-            onMouseDown={handleMouseDown}
-          >
-            <div className="bg-white rounded-lg shadow-lg border overflow-hidden w-64">
-              <div className="bg-gray-800 text-white p-2 flex items-center justify-between cursor-move">
-                <span className="text-sm font-medium flex items-center gap-2">
-                  <Video size={16} />
-                  Live Monitoring
-                </span>
-                <div className="flex gap-1 items-center">
-                  <Move size={12} className="opacity-60" />
-                  <button
-                    onClick={toggleAudio}
-                    className={`p-1 rounded text-xs ${isAudioOn
-                        ? 'bg-green-500 hover:bg-green-600'
-                        : 'bg-gray-500 hover:bg-gray-600'
-                      }`}
-                  >
-                    {isAudioOn ? <Mic size={12} /> : <MicOff size={12} />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="bg-black pointer-events-none">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  muted
-                  className="w-full h-32 object-cover"
-                />
-              </div>
-
-              <div className="p-2 bg-gray-50 text-xs pointer-events-none">
-                <div className="flex justify-between items-center">
-                  <span>Status: Recording</span>
-                  <div className="flex gap-2">
-                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                    <span className={`w-2 h-2 rounded-full ${isAudioOn ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                  </div>
-                </div>
+          {/* Face Violation Warning */}
+          {showFaceViolationWarning && (
+            <div className="fixed top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-orange-600 text-white p-6 rounded-lg shadow-2xl z-[105] max-w-sm">
+              <div className="text-center">
+                <div className="text-4xl mb-2">👤</div>
+                <h3 className="font-bold text-lg mb-2">Face Monitoring Alert!</h3>
+                <p className="text-sm mb-2">
+                  Face not detected or multiple faces detected.
+                </p>
+                <p className="text-xs opacity-90">
+                  Violation #{faceMonitoringViolations} of 5
+                </p>
               </div>
             </div>
-          </div>
-
+          )}
+          
           {/* Fullscreen Violation Warning Popup */}
           {showViolationWarning && (
             <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[100]">
@@ -724,6 +707,7 @@ useEffect(() => {
           )}
         </>
       )}
+
       {/* Success Popup */}
       {showSuccessPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
@@ -738,6 +722,13 @@ useEffect(() => {
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes shrink {
+          from { width: 100%; }
+          to { width: 0%; }
+        }
+      `}</style>
     </div>
   );
 };

@@ -21,6 +21,7 @@ const Instructions = () => {
         const response = await fetch(`https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/user-tests?studentId=${studentId}`);
         const data = await response.json();
         setTestData(data);
+        console.log('Fetched test data:', data); // Debug log
       } catch (error) {
         console.error('Error fetching test data:', error);
       }
@@ -45,6 +46,8 @@ const Instructions = () => {
       // Get test ID from localStorage
       const currentTestId = localStorage.getItem('currentTestId');
       
+      console.log('Current Test ID from localStorage:', currentTestId); // Debug log
+      
       if (!currentTestId) {
         console.error('No test ID found in localStorage');
         alert('Test ID not found. Please select a test first.');
@@ -59,11 +62,15 @@ const Instructions = () => {
         return;
       }
 
+      console.log('Available tests:', testData.testData); 
+
       // Find the matching test in the API response
       const matchingTest = testData.testData.find(test => test.testId === currentTestId);
 
       if (!matchingTest) {
         console.error('Test ID from localStorage does not match any test in API response');
+        console.error('Looking for:', currentTestId);
+        console.error('Available test IDs:', testData.testData.map(test => test.testId));
         alert('Test not found. Please select a valid test.');
         setLoading(false);
         return;
@@ -72,16 +79,20 @@ const Instructions = () => {
       console.log('Matching test found:', matchingTest);
       console.log('Test type:', matchingTest.type);
 
-      // Navigate based on test type
+      // Navigate based on test type (with better debugging)
       if (matchingTest.type === 'coding') {
         console.log('Navigating to coding section');
         navigate('/coding-section');
-      } else if (matchingTest.type === 'mcq') {
+      } else if (matchingTest.type === 'MCQ') {
         console.log('Navigating to aptitude test');
+        // Try multiple possible routes - uncomment the one that works for your app
         navigate('/aptitude-test');
+        // navigate('/aptitude');
+        // navigate('/aptitude-section');
+        // navigate('/mcq-test');
       } else {
         console.error('Unknown test type:', matchingTest.type);
-        alert('Unknown test type. Please contact administrator.');
+        alert(`Unknown test type: ${matchingTest.type}. Please contact administrator.`);
       }
     } catch (error) {
       console.error('Error during exam start:', error);

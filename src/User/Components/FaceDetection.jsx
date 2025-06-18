@@ -362,18 +362,9 @@ const FaceDetectionComponent = ({ onNavigateToAudio }) => {
           <h1 className="text-3xl font-bold text-gray-800">
             Face Detection
           </h1>
-          <div className="text-sm text-gray-600">
-            <p>Student ID: <span className="font-medium">{studentId}</span></p>
-            <p>Test ID: <span className="font-medium">{testId}</span></p>
-          </div>
         </div>
 
-        {isModelLoading && (
-          <div className="mb-4 p-4 bg-blue-100 text-blue-800 rounded-lg flex items-center justify-center">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-800 mr-3"></div>
-            <span>Loading face detection model...</span>
-          </div>
-        )}
+        
 
         {error && !error.includes('Missing required parameters') && (
           <div className="mb-4 p-4 bg-yellow-100 text-yellow-800 rounded-lg flex items-center justify-center">
@@ -402,19 +393,6 @@ const FaceDetectionComponent = ({ onNavigateToAudio }) => {
               <p className="mb-2 font-medium text-blue-600">
                 Position your face in the center of the frame and look straight ahead
               </p>
-
-              {isModelLoaded && (
-                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                  <p className="text-xs text-gray-500 mb-2">Detection Info:</p>
-                  <p className="text-sm">Faces detected: <span className="font-bold">{detectedFaces.length}</span></p>
-                  {detectedFaces.length > 0 && (
-                    <>
-                      <p className="text-sm">Confidence: <span className="font-bold">{(detectedFaces[0].probability * 100).toFixed(1)}%</span></p>
-                      <p className="text-sm">Properly positioned: <span className={`font-bold ${isCorrectPosition ? 'text-green-600' : 'text-red-600'}`}>{isCorrectPosition ? 'Yes' : 'No'}</span></p>
-                    </>
-                  )}
-                </div>
-              )}
             </div>
           </div>
 

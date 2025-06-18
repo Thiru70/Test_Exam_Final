@@ -3,7 +3,7 @@ import { Camera, Flag, Clock, User, Loader2, Maximize, AlertTriangle, Eye, EyeOf
 
 const AptitudeTest = ({ onNavigateToCoding }) => {
     const BASE_URL = 'https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev';
-    const TEST_ID = '01JXCQEQGN53SBW8FY4KKQXXPC';
+    const TEST_ID =  localStorage.getItem('currentTestId');
     const USER_ID = localStorage.getItem('student_id');
     
     // Generate unique test session ID for this attempt

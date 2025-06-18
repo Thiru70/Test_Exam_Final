@@ -1,277 +1,326 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Check, AlertTriangle } from 'lucide-react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Check, AlertTriangle, RotateCcw } from 'lucide-react';
+import { LiveAudioVisualizer } from 'react-audio-visualize';
+import Toast from './ToastComponent'; // Import your existing Toast component
 
 const AudioDetection = ({ onNavigateNext }) => {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  
-  // Extract parameters from URL
-  const studentId = searchParams.get('studentId');
-  const testId = searchParams.get('testId');
-  
-  const [isDetecting, setIsDetecting] = useState(false);
-  const [audioDetected, setAudioDetected] = useState(false);
-  const [audioLevel, setAudioLevel] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState(10);
-  const [noiseTooLoud, setNoiseTooLoud] = useState(false);
-  
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [detectionResult, setDetectionResult] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [noiseLevel, setNoiseLevel] = useState(0);
+  const [isInitializing, setIsInitializing] = useState(true);
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);
-  const streamRef = useRef(null);
-  const animationRef = useRef(null);
-  const timerRef = useRef(null);
-  const noiseHistoryRef = useRef([]);
+  const dataArrayRef = useRef(null);
+  const animationFrameRef = useRef(null);
 
-  const NOISE_THRESHOLD = 0.3; // Threshold for "too loud" noise
+  const NOISE_THRESHOLD = 20; // Adjusted for actual audio levels
+  const HIGH_NOISE_THRESHOLD = 40;
 
   const startAudioDetection = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
-          echoCancellation: true,
+          echoCancellation: false,
           noiseSuppression: false,
-          autoGainControl: false,
-          sampleRate: 44100
+          autoGainControl: false
         } 
       });
       
-      streamRef.current = stream;
+      const recorder = new MediaRecorder(stream);
+      setMediaRecorder(recorder);
+      recorder.start();
       
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const analyser = audioContext.createAnalyser();
-      const microphone = audioContext.createMediaStreamSource(stream);
+      // Set up Web Audio API for proper audio analysis
+      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      analyserRef.current = audioContextRef.current.createAnalyser();
+      const source = audioContextRef.current.createMediaStreamSource(stream);
+      source.connect(analyserRef.current);
       
-      analyser.fftSize = 256;
-      analyser.smoothingTimeConstant = 0.8;
-      microphone.connect(analyser);
+      analyserRef.current.fftSize = 256;
+      const bufferLength = analyserRef.current.frequencyBinCount;
+      dataArrayRef.current = new Uint8Array(bufferLength);
       
-      audioContextRef.current = audioContext;
-      analyserRef.current = analyser;
+      setIsInitializing(false);
       
-      setIsDetecting(true);
-      monitorAudio();
-      startTimer();
+      // Start monitoring after a brief delay
+      setTimeout(() => {
+        monitorNoiseLevel();
+      }, 1000);
       
     } catch (error) {
-      console.error('Microphone access denied:', error);
-    }
-  };
-
-  const startTimer = () => {
-    timerRef.current = setInterval(() => {
-      setTimeRemaining(prev => {
-        if (prev <= 1) {
-          completeDetection();
-          return 0;
-        }
-        return prev - 1;
+      console.error('Microphone access error:', error);
+      setToast({
+        message: `Microphone access failed: ${error.message}. Please allow microphone access.`,
+        type: "error"
       });
-    }, 1000);
-  };
-
-  const completeDetection = () => {
-    setAudioDetected(true);
-    setIsDetecting(false);
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
+      setIsInitializing(false);
     }
-    stopMonitoring();
   };
 
-  const monitorAudio = () => {
-    const analyser = analyserRef.current;
-    if (!analyser) return;
-
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-
-    const detectAudio = () => {
-      if (!analyser || !isDetecting) return;
-      
-      analyser.getByteFrequencyData(dataArray);
-      
-      const average = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
-      const normalizedLevel = average / 128;
-      
-      setAudioLevel(normalizedLevel);
-      
-      // Add to noise history for better detection
-      noiseHistoryRef.current.push(normalizedLevel);
-      if (noiseHistoryRef.current.length > 10) {
-        noiseHistoryRef.current.shift();
+  const monitorNoiseLevel = () => {
+    const checkNoise = () => {
+      if (analyserRef.current && dataArrayRef.current) {
+        analyserRef.current.getByteFrequencyData(dataArrayRef.current);
+        
+        // Calculate RMS (Root Mean Square) for better noise detection
+        let sum = 0;
+        for (let i = 0; i < dataArrayRef.current.length; i++) {
+          sum += dataArrayRef.current[i] * dataArrayRef.current[i];
+        }
+        const rms = Math.sqrt(sum / dataArrayRef.current.length);
+        
+        // Convert to a more readable scale (0-100)
+        const normalizedLevel = Math.min(100, (rms / 128) * 100);
+        setNoiseLevel(normalizedLevel);
+        
+        // Show warnings based on noise level
+        if (normalizedLevel > HIGH_NOISE_THRESHOLD) {
+          if (!toast || toast.type !== 'error') {
+            setToast({
+              message: "Noise level is very high! Please find a quieter environment.",
+              type: "error"
+            });
+          }
+        } else if (normalizedLevel > NOISE_THRESHOLD) {
+          if (!toast || toast.type !== 'warning') {
+            setToast({
+              message: "Background noise detected. Please try to minimize noise sources.",
+              type: "warning"
+            });
+          }
+        } else if (normalizedLevel <= NOISE_THRESHOLD && !detectionResult) {
+          // Good noise level - show success after 2 seconds of stable low noise
+          setTimeout(() => {
+            if (noiseLevel <= NOISE_THRESHOLD) {
+              setDetectionResult('success');
+              setToast({
+                message: "Audio detection completed successfully! Environment is suitable for testing.",
+                type: "success"
+              });
+            }
+          }, 2000);
+        }
       }
       
-      // Check if noise is consistently too loud
-      const avgNoise = noiseHistoryRef.current.reduce((sum, level) => sum + level, 0) / noiseHistoryRef.current.length;
-      setNoiseTooLoud(avgNoise > NOISE_THRESHOLD);
-      
-      animationRef.current = requestAnimationFrame(detectAudio);
+      if (!detectionResult) {
+        animationFrameRef.current = requestAnimationFrame(checkNoise);
+      }
     };
     
-    detectAudio();
+    checkNoise();
   };
 
-  const stopMonitoring = () => {
-    if (animationRef.current) {
-      cancelAnimationFrame(animationRef.current);
+  const handleRetry = () => {
+    setDetectionResult(null);
+    setNoiseLevel(0);
+    setToast(null);
+    
+    // Clean up previous audio context and animation frame
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
     }
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-    }
+    
     if (audioContextRef.current) {
       audioContextRef.current.close();
     }
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
+    
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
     }
+    
+    setTimeout(() => {
+      startAudioDetection();
+    }, 500);
   };
 
   const handleNext = () => {
-    // Store audio detection completion status
     const audioDetectionData = {
-      completed: true,
+      completed: detectionResult === 'success',
+      result: detectionResult,
       timestamp: new Date().toISOString(),
-      audioLevel: audioLevel,
-      noiseTooLoud: noiseTooLoud
+      noiseLevel: noiseLevel
     };
     
-    // Store in memory (since localStorage is not available in Claude.ai)
-    // In a real app, you would use: localStorage.setItem('audioDetectionData', JSON.stringify(audioDetectionData));
-    
     if (onNavigateNext) {
-      // Pass parameters to the callback
-      onNavigateNext({ studentId, testId, audioDetectionData });
-    } else {
-      // Default navigation to instructions with parameters
-      navigate(`/instructions?studentId=${studentId}&testId=${testId}&audioCompleted=true`);
+      onNavigateNext({ audioDetectionData });
     }
   };
 
-  const generateWaveformBars = () => {
-    const bars = [];
-    const numBars = 40;
-    
-    for (let i = 0; i < numBars; i++) {
-      const isActive = isDetecting;
-      const height = isActive ? 
-        Math.max(0.3, Math.random() * audioLevel + 0.2) : 
-        0.5;
-      
-      bars.push(
-        <div
-          key={i}
-          className={`bg-gray-800 transition-all duration-150 ${
-            isActive ? 'animate-pulse' : ''
-          }`}
-          style={{
-            width: '3px',
-            height: `${height * 40}px`,
-            minHeight: '8px',
-            maxHeight: '40px'
-          }}
-        />
-      );
-    }
-    return bars;
+  const getVisualizerColor = () => {
+    if (detectionResult === 'success') return '#10b981';
+    if (noiseLevel > HIGH_NOISE_THRESHOLD) return '#ef4444';
+    if (noiseLevel > NOISE_THRESHOLD) return '#f59e0b';
+    return '#3b82f6';
   };
 
+  const getNoiseStatus = () => {
+    if (noiseLevel > HIGH_NOISE_THRESHOLD) return 'High';
+    if (noiseLevel > NOISE_THRESHOLD) return 'Moderate';
+    return 'Low';
+  };
+
+  // Cleanup on unmount
   useEffect(() => {
-    startAudioDetection();
-    
     return () => {
-      stopMonitoring();
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
     };
   }, []);
 
+  useEffect(() => {
+    startAudioDetection();
+  }, []);
+
   return (
-    <div className="min-h-screen w-full bg-white flex flex-col items-center justify-center relative">
-      
-      {/* Debug Info - Show parameters (remove in production) */}
-      {(studentId || testId) && (
-        <div className="fixed top-4 left-4 bg-blue-100 text-blue-800 px-3 py-2 rounded-lg text-sm z-10">
-          <div>Student ID: {studentId || 'N/A'}</div>
-          <div>Test ID: {testId || 'N/A'}</div>
-        </div>
+    <>
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={() => setToast(null)} 
+        />
       )}
       
-      {/* Noise Warning - Top Right */}
-      {noiseTooLoud && isDetecting && (
-        <div className="fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center space-x-2 z-10">
-          <AlertTriangle className="w-5 h-5" />
-          <span className="font-medium">Background noise is too loud!</span>
-        </div>
-      )}
-
-      {/* Main Content */}
-      <div className="text-center">
+      <div className="min-h-screen w-full bg-white flex flex-col items-center justify-center relative">
         
-        {/* Title */}
-        <h1 className="text-3xl font-bold text-gray-800 mb-16">
-          Audio detection
-        </h1>
+        {/* Main Content */}
+        <div className="text-center">
+          
+          {/* Title */}
+          <h1 className="text-3xl font-bold text-gray-800 mb-16 -ml-10">
+            Audio Detection
+          </h1>
 
-        {/* Waveform Visualization */}
-        <div className="mb-12 flex items-center justify-center space-x-1 h-16">
-          {audioDetected ? (
-            <div className="flex items-center justify-center space-x-1">
-              {generateWaveformBars()}
-              <div className="ml-6 p-3 bg-green-500 rounded-full">
-                <Check className="w-8 h-8 text-white" />
+          {/* Audio Visualizer */}
+          <div className="mb-12 flex items-center justify-center">
+            <div className="flex items-center space-x-6">
+              <div className="w-96 h-20 flex items-center justify-center bg-gray-50 rounded-lg border-2 border-gray-200">
+                {mediaRecorder ? (
+                  <LiveAudioVisualizer
+                    mediaRecorder={mediaRecorder}
+                    width={350}
+                    height={60}
+                    barWidth={3}
+                    gap={2}
+                    barColor={getVisualizerColor()}
+                    backgroundColor="transparent"
+                    fftSize={512}
+                    maxDecibels={-10}
+                    minDecibels={-90}
+                    smoothingTimeConstant={0.4}
+                  />
+                ) : (
+                  <div className="text-gray-400 text-sm">
+                    {isInitializing ? 'Initializing audio...' : 'Audio access failed'}
+                  </div>
+                )}
               </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center space-x-1">
-              {generateWaveformBars()}
-            </div>
-          )}
-        </div>
-
-        {/* Status Message */}
-        <div className="mb-8">
-          {audioDetected ? (
-            <p className="text-gray-700 text-xl font-medium">
-              Audio detected successfully!
-            </p>
-          ) : isDetecting ? (
-            <div className="space-y-2">
-              <p className="text-gray-600 text-lg">
-                Detecting background noise...
-              </p>
-              <p className="text-gray-500">
-                {timeRemaining} seconds remaining
-              </p>
-            </div>
-          ) : (
-            <p className="text-gray-600 text-lg">
-              Initializing audio detection...
-            </p>
-          )}
-        </div>
-
-        {/* Next Button */}
-        {audioDetected && (
-          <button 
-            onClick={handleNext}
-            className="bg-cyan-500 hover:bg-cyan-600 text-white px-10 py-4 rounded-full text-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
-          >
-            Next
-          </button>
-        )}
-
-        {/* Progress Indicator */}
-        {isDetecting && (
-          <div className="mt-8 w-80 mx-auto">
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-blue-500 h-2 rounded-full transition-all duration-1000"
-                style={{ width: `${((10 - timeRemaining) / 10) * 100}%` }}
-              />
+              
+              {/* Status Icon */}
+              {detectionResult === 'success' && (
+                <div className="p-3 bg-green-500 rounded-full">
+                  <Check className="w-8 h-8 text-white" />
+                </div>
+              )}
+              
+              {noiseLevel > HIGH_NOISE_THRESHOLD && (
+                <div className="p-3 bg-red-500 rounded-full">
+                  <AlertTriangle className="w-8 h-8 text-white" />
+                </div>
+              )}
             </div>
           </div>
-        )}
+
+
+          {/* Status Messages */}
+          <div className="mb-8">
+            {detectionResult === 'success' ? (
+              <p className="text-green-700 text-xl font-medium">
+                Audio detection passed! Environment is suitable for testing.
+              </p>
+            ) : isInitializing ? (
+              <p className="text-gray-600 text-lg">
+                Initializing audio detection...
+              </p>
+            ) : mediaRecorder ? (
+              <div className="space-y-2">
+                <p className="text-gray-600 text-lg">
+                  Monitoring background noise...
+                </p>
+                <p className="text-gray-500 text-sm">
+                  Please stay quiet for optimal detection
+                </p>
+                
+                {/* Real-time Alert Messages */}
+                {noiseLevel > HIGH_NOISE_THRESHOLD && (
+                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <AlertTriangle className="w-5 h-5 text-red-600" />
+                      <p className="text-red-800 text-sm font-medium">
+                        Critical: Noise level too high! Please find a quieter location.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                {noiseLevel > NOISE_THRESHOLD && noiseLevel <= HIGH_NOISE_THRESHOLD && (
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                      <p className="text-yellow-800 text-sm font-medium">
+                        Warning: Elevated background noise detected
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                {noiseLevel <= NOISE_THRESHOLD && (
+                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <Check className="w-5 h-5 text-green-600" />
+                      <p className="text-green-800 text-sm font-medium">
+                        Good: Low noise environment detected
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-red-600 text-lg">
+                Unable to access microphone. Please check permissions.
+              </p>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="space-x-4">
+            {detectionResult === 'success' && (
+              <button 
+                onClick={handleNext}
+                className="bg-green-500 hover:bg-green-600 text-white px-10 py-4 rounded-full text-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                Continue
+              </button>
+            )}
+            
+            {(detectionResult === 'failed' || (!isInitializing && !mediaRecorder)) && (
+              <button 
+                onClick={handleRetry}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-4 rounded-full text-lg font-medium transition-all duration-200 shadow-lg hover:shadow-xl inline-flex items-center space-x-2"
+              >
+                <RotateCcw className="w-5 h-5" />
+                <span>Retry Detection</span>
+              </button>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -1,85 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const styles = `
-  @keyframes slide-in {
-    from {
-      transform: translateX(100%);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(0);
-      opacity: 1;
-    }
-  }
-  
-  .animate-slide-in {
-    animation: slide-in 0.3s ease-out;
-  }
-`;
-
-// Inject styles
-if (typeof document !== 'undefined') {
-  const styleSheet = document.createElement('style');
-  styleSheet.textContent = styles;
-  document.head.appendChild(styleSheet);
-}
-
-// Toast Component (matching StudentLogin styling)
-const Toast = ({ message, type = 'success', onClose }) => {
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      onClose();
-    }, 4000);
-    
-    return () => clearTimeout(timer);
-  }, [onClose]);
-
-  return (
-    <div className="fixed top-4 right-4 z-50 animate-slide-in">
-      <div className={`rounded-md p-4 shadow-lg ${
-        type === 'success' 
-          ? 'bg-green-50 border border-green-200' 
-          : 'bg-red-50 border border-red-200'
-      }`}>
-        <div className="flex items-center">
-          <div className="flex-shrink-0">
-            {type === 'success' ? (
-              <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-            ) : (
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            )}
-          </div>
-          <div className="ml-3 flex-1">
-            <p className={`text-sm font-medium ${
-              type === 'success' ? 'text-green-800' : 'text-red-800'
-            }`}>
-              {message}
-            </p>
-          </div>
-          <div className="ml-4 flex-shrink-0">
-            <button
-              onClick={onClose}
-              className={`inline-flex rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                type === 'success' 
-                  ? 'text-green-500 hover:bg-green-100 focus:ring-green-600' 
-                  : 'text-red-500 hover:bg-red-100 focus:ring-red-600'
-              }`}
-            >
-              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+import Toast from "../Components/ToastComponent";
 
 const MyTests = () => {
   const [tests, setTests] = useState([]);
@@ -87,6 +9,8 @@ const MyTests = () => {
   const [error, setError] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
   const [toast, setToast] = useState(null);
+  const [currentRound, setCurrentRound] = useState(1);
+  const [displayedTests, setDisplayedTests] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -147,6 +71,41 @@ const MyTests = () => {
     fetchTests();
   }, [navigate]);
 
+  // Filter and display tests based on round logic
+  useEffect(() => {
+    if (tests.length === 0) {
+      setDisplayedTests([]);
+      return;
+    }
+
+    // Filter aptitude/MCQ tests for Round 1
+    const aptitudeTests = tests.filter(test => 
+      test.type === 'MCQ' || 
+      test.type === 'aptitude' || 
+      test.testName?.toLowerCase().includes('aptitude')
+    );
+
+    // Filter coding tests for Round 2
+    const codingTests = tests.filter(test => 
+      test.type === 'coding' || 
+      test.testName?.toLowerCase().includes('coding')
+    );
+
+    if (aptitudeTests.length > 0) {
+      // Show Round 1 with aptitude tests
+      setCurrentRound(1);
+      setDisplayedTests(aptitudeTests);
+    } else if (codingTests.length > 0) {
+      // Show Round 2 with coding tests if no aptitude tests
+      setCurrentRound(2);
+      setDisplayedTests(codingTests);
+    } else {
+      // Show all tests if none match the criteria
+      setCurrentRound(1);
+      setDisplayedTests(tests);
+    }
+  }, [tests]);
+
   const handleStartTest = (testId, testName) => {
     // Get student ID from localStorage
     const studentId = localStorage.getItem('student_id');
@@ -200,6 +159,44 @@ const MyTests = () => {
     return { available: true, message: '' };
   };
 
+  // Enhanced Empty State Component
+  const EmptyStateIllustration = () => (
+    <div className="flex flex-col items-center justify-center py-16 px-6">
+      {/* Animated Illustration */}
+      <div className="relative mb-8">
+        <div className="w-32 h-32 bg-gradient-to-br from-blue-100 to-indigo-200 rounded-full flex items-center justify-center relative overflow-hidden">
+          {/* Floating elements animation */}
+          <div className="absolute inset-0">
+            <div className="absolute top-4 left-8 w-3 h-3 bg-blue-300 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+            <div className="absolute top-8 right-6 w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '0.5s'}}></div>
+            <div className="absolute bottom-6 left-6 w-2.5 h-2.5 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '1s'}}></div>
+          </div>
+          
+          {/* Main Icon */}
+          <svg className="w-16 h-16 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        
+        {/* Decorative rings */}
+        <div className="absolute inset-0 rounded-full border-2 border-blue-200 animate-ping opacity-20"></div>
+        <div className="absolute inset-2 rounded-full border border-indigo-200 animate-pulse opacity-30"></div>
+      </div>
+
+      {/* Text Content */}
+      <div className="text-center max-w-md">
+        <h3 className="text-xl font-semibold text-gray-900 mb-3">
+          No Tests Available Right Now
+        </h3>
+        <p className="text-gray-600 mb-6 leading-relaxed">
+          Looks like there are no tests scheduled for you at the moment. Check back later or contact your instructor if you believe this is an error.
+        </p>
+        
+       
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="p-6 bg-gray-50 min-h-screen">
@@ -245,17 +242,15 @@ const MyTests = () => {
         {/* Header Section */}
         <div className="mb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-1">Ongoing test</h2>
-          <p className="text-sm text-gray-600">Round 1</p>
+          <p className="text-sm text-gray-600">Round {currentRound}</p>
         </div>
 
-        {/* Tests Grid */}
-        {tests.length === 0 ? (
-          <div className="bg-gray-500 rounded-lg border border-gray-200 p-8 text-center">
-            <p className="text-gray-500">No tests available at the moment.</p>
-          </div>
+        {/* Tests Grid or Empty State */}
+        {displayedTests.length === 0 ? (
+          <EmptyStateIllustration />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {tests.map((test, index) => {
+            {displayedTests.map((test, index) => {
               const testAvailability = isTestAvailable(test);
               
               return (
@@ -299,9 +294,9 @@ const MyTests = () => {
                 
                 {/* Description */}
                 <p className="text-sm text-gray-600 mb-4">
-                  {test.type === 'MCQ' ? 'Multiple Choice Questions' : 
+                  {test.type === 'MCQ' || test.type === 'aptitude' ? 'Aptitude Test - Multiple Choice Questions' : 
                    test.type === 'coding' ? 'Coding Assessment' : 
-                   'Description'}
+                   'Assessment'}
                 </p>
                 
                 {/* Test Details */}
@@ -316,7 +311,9 @@ const MyTests = () => {
                   </div>
                   <div className="flex justify-between text-sm text-gray-600">
                     <span>Type:</span>
-                    <span className="capitalize font-medium">{test.type}</span>
+                    <span className="capitalize font-medium">
+                      {test.type === 'MCQ' || test.type === 'aptitude' ? 'Aptitude' : test.type}
+                    </span>
                   </div>
                   
                 </div>

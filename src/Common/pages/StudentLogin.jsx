@@ -258,7 +258,6 @@ const StudentLogin = () => {
                   onChange={handleInputChange}
                   disabled={isLoading}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-10 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                  placeholder="DD-MM-YYYY"
                 />
                 <button
                   type="button"
