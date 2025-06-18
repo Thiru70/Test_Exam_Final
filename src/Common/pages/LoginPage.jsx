@@ -18,21 +18,15 @@ const LoginPage = () => {
             title="Company"
             description="For recruiters posting jobs or campus drives at partner colleges"
             selected={true}
-            to="/email-verification?type=company"
+            to="/company-login"
           />
           
           <OptionCard 
             type="student"
             title="Student"
             description="For students seeking opportunities and campus placement"
-            to="/email-verification?type=studen"
+            to="/StudentLogin?type=student"
           />
-        </div>
-        
-        <div className="mt-8 text-center">
-          <p className="text-gray-600">
-            Don't have an account? <Link to="/" className="text-blue-600 font-medium hover:underline">Sign up</Link>
-          </p>
         </div>
       </AuthCard>
     </div>

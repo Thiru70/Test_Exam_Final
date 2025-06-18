@@ -61,8 +61,6 @@ import OtpVerificationForForgetPassword from "./Admin/Pages/OtpVerificationForFo
 
 // import FaceRecognition from './User/Components/FaceRecognition';
 
-
-
 const FaceDetectionWrapper = () => {
   const navigate = useNavigate();
   const handleNavigateToAudio = () => navigate("/audio-detection");
@@ -95,84 +93,33 @@ const InterviewInvitationWrapper = () => {
   );
 };
 
-function MyComponent() {
-  const location = useLocation();
-  return <div>Current path: {location.pathname}</div>;
-}
-
+const ProtectedRoute = ({ children }) => {
+  const token = Cookies.get("token");
+  return token ? children : <Navigate to="/company-login" replace />;
+};
 
 function App() {
-  const token = Cookies.get("token");
-  console.log(token,"token")
-
-  
-
-  // console.log(location.pathname, "[athname");
-
-  // if (location.pathname === "/") {
-  //   if (!isAuthenticated) {
-  //     return <Navigate to="/auth/login" />;
-  //   } else {
-  //     if (user?.role === "admin") {
-  //       return <Navigate to="/admin/dashboard" />;
-  //     } else {
-  //       return <Navigate to="/shop/home" />;
-  //     }
-  //   }
-  // }
-
-  // if (
-  //   !isAuthenticated &&
-  //   !(
-  //     location.pathname.includes("/login") ||
-  //     location.pathname.includes("/register")
-  //   )
-  // ) {
-  //   return <Navigate to="/auth/login" />;
-  // }
-
-  // if (
-  //   isAuthenticated &&
-  //   (location.pathname.includes("/login") ||
-  //     location.pathname.includes("/register"))
-  // ) {
-  //   if (user?.role === "admin") {
-  //     return <Navigate to="/admin/dashboard" />;
-  //   } else {
-  //     return <Navigate to="/shop/home" />;
-  //   }
-  // }
-
-  // if (
-  //   isAuthenticated &&
-  //   user?.role !== "admin" &&
-  //   location.pathname.includes("admin")
-  // ) {
-  //   return <Navigate to="/unauth-page" />;
-  // }
-
-  // if (
-  //   isAuthenticated &&
-  //   user?.role === "admin" &&
-  //   location.pathname.includes("shop")
-  // ) {
-  //   return <Navigate to="/admin/dashboard" />;
-  // }
 
   return (
     <Router>
       <Routes>
         {/* Common Routes */}
-        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
 
-        <Route path="/home" element={<HomePage />} />
+        {/* <Route path="/home" element={<HomePage />} /> */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/company-login" element={<CompanyLoginForm />} />
-        <Route path="/reset-email-verification" element={<CompanyForgetPassword />} />
+        <Route
+          path="/reset-email-verification"
+          element={<CompanyForgetPassword />}
+        />
         <Route path="/information" element={<InformationForm />} />
         <Route path="/email-verification" element={<EmailVerification />} />
         <Route path="/otp-verification" element={<OtpVerification />} />
-        <Route path="/forget-password/otp-verification" element={<OtpVerificationForForgetPassword />} />
+        <Route
+          path="/forget-password/otp-verification"
+          element={<OtpVerificationForForgetPassword />}
+        />
         <Route path="/reset-password" element={<CompanyConfirmPassword />} />
         <Route path="/info-form" element={<InfoForm />} />
         <Route path="/StudentLogin" element={<StudentLogin />} />
@@ -198,33 +145,33 @@ function App() {
         <Route path="/selection-process" element={<SelectionProcessStages />} />
 
         {/* Admin Routes (wrapped in layout) */}
-        {/* {token ? ( */}
-          <Route element={<Layout />}>
-            <Route path="/myTest" element={<MyTest />} />
-            <Route path="/respondents" element={<Respondents />} />
-            <Route path="/results" element={<Result />} />
-            <Route path="/StudentForm" element={<StudentForm />} />
-            <Route path="/account" element={<MyAccount />} />
-            <Route path="/emailForm" element={<EmailForm />} />
-            <Route path="/resultTable" element={<ResultTable />} />
-            <Route path="/testReview" element={<TestSheetReview />} />
-            <Route path="/testconfiguration" element={<Testconfiguration />} />
-            <Route path="/questionSet" element={<QuestionSet />} />
-            <Route path="/candidateList" element={<StudentTable />} />
-            <Route path="/studentEmail-form" element={<StudentEmailForm />} />
-            <Route path="/Emailsuccess" element={<Emailsuccess />} />
-            {/* <Route path="/candidateList" element={<CandidateList />} /> */}
-            <Route path="/MailDashborad" element={<MailDashboard />} />
-            <Route path="/SetCriteria" element={<EligibilityCriteriaForm />} />
-            <Route path="/GradingCriteria" element={<GradingCriteria />} />
-            <Route path="/UpdateTest/:testId" element={<UpdateTest />} />
-            <Route path="/UpdateTest" element={<UpdateTest />} />
-          </Route>
-        {/* ) : ( */}
-      
-            {/* <Route path="/information" element={<InformationForm />} />
-        
-        )} */}
+        <Route
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/myTest" element={<MyTest />} />
+          <Route path="/respondents" element={<Respondents />} />
+          <Route path="/results" element={<Result />} />
+          <Route path="/StudentForm" element={<StudentForm />} />
+          <Route path="/account" element={<MyAccount />} />
+          <Route path="/emailForm" element={<EmailForm />} />
+          <Route path="/resultTable" element={<ResultTable />} />
+          <Route path="/testReview" element={<TestSheetReview />} />
+          <Route path="/testconfiguration" element={<Testconfiguration />} />
+          <Route path="/questionSet" element={<QuestionSet />} />
+          <Route path="/candidateList" element={<StudentTable />} />
+          <Route path="/studentEmail-form" element={<StudentEmailForm />} />
+          <Route path="/Emailsuccess" element={<Emailsuccess />} />
+          {/* <Route path="/candidateList" element={<CandidateList />} /> */}
+          <Route path="/MailDashborad" element={<MailDashboard />} />
+          <Route path="/SetCriteria" element={<EligibilityCriteriaForm />} />
+          <Route path="/GradingCriteria" element={<GradingCriteria />} />
+          <Route path="/UpdateTest/:testId" element={<UpdateTest />} />
+          <Route path="/UpdateTest" element={<UpdateTest />} />
+        </Route>
 
         {/* Fallback Route */}
         <Route path="/Monaco-editor" element={<MonacoEditor />} />

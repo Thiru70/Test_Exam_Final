@@ -74,7 +74,7 @@ export default function CompanyLoginForm() {
         <div className="absolute top-6 right-8 text-sm text-gray-400 ">
           Already have an account?{" "}
           <Link
-            to="/information"
+            to="/email-verification"
             className="text-blue-600 hover:underline font-medium"
           >
             Sign up
