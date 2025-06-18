@@ -1,147 +1,168 @@
 import React, { useState } from "react";
-import { User, Key, Shield, LogOut } from "lucide-react";
+import RightSidebar from "../Components/RightSideBar";
+import ProfileInformation from "../Components/ProfileInformation";
+import ChangePassword from "../Components/ChangePassword";
 
 const ProfileContent = () => {
-  const [openSection, setOpenSection] = useState(null);
+  const [activeSection, setActiveSection] = useState('profile');
+  const [studentData, setStudentData] = useState(null);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
 
-  const toggleSection = (section) => {
-    setOpenSection(openSection === section ? null : section);
+  const handlePasswordChange = (field, value) => {
+    setPasswordData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleUpdatePassword = async () => {
+    // Validate password fields
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      alert('Please fill in all password fields');
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      alert('New password and confirm password do not match');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      alert('New password must be at least 6 characters long');
+      return;
+    }
+
+    try {
+      // Get student ID from localStorage
+      const studentId = localStorage.getItem('student_id');
+      
+      if (!studentId) {
+        alert('Student ID not found. Please log in again.');
+        return;
+      }
+
+      console.log('Update password for student:', studentId);
+      
+      const response = await fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/student/change-password', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          student_id: studentId,
+          current_password: passwordData.currentPassword,
+          new_password: passwordData.newPassword
+        })
+      });
+
+      let result;
+      const responseText = await response.text();
+      console.log('Password change response:', responseText);
+
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Failed to parse password response as JSON:', parseError);
+        throw new Error(`Server returned invalid JSON. Status: ${response.status}`);
+      }
+
+      if (!response.ok) {
+        const errorMessage = result.message || result.error || 'Failed to update password';
+        throw new Error(errorMessage);
+      }
+
+      // Reset password form
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      
+      alert('Password updated successfully!');
+      
+    } catch (error) {
+      console.error('Error updating password:', error);
+      alert(`Failed to update password: ${error.message}`);
+    }
+  };
+
+  const handleProfilePictureUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const imageUrl = e.target.result;
+        setStudentData(prev => ({
+          ...prev,
+          profile_picture: imageUrl
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDeleteProfilePicture = () => {
+    setStudentData(prev => ({
+      ...prev,
+      profile_picture: null
+    }));
+  };
+
+  const handleLogoutClick = () => {
+    console.log('Logout clicked');
+    if (window.confirm('Are you sure you want to logout?')) {
+      alert('Logout functionality would redirect to login page');
+    }
+  };
+
+  const renderMainContent = () => {
+    switch (activeSection) {
+      case 'profile':
+        return (
+          <ProfileInformation
+            studentData={studentData}
+            setStudentData={setStudentData}
+          />
+        );
+      case 'password':
+        return (
+          <ChangePassword
+            passwordData={passwordData}
+            handlePasswordChange={handlePasswordChange}
+            handleUpdatePassword={handleUpdatePassword}
+          />
+        );
+      default:
+        return (
+          <ProfileInformation
+            studentData={studentData}
+            setStudentData={setStudentData}
+          />
+        );
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="flex min-h-screen bg-gray-100">
       {/* Main Content */}
       <div className="flex-1 p-6">
-        <div className="max-w-2xl">
-          {/* Profile Information Section */}
-          <div className="bg-gray-200 rounded-lg mb-4">
-            <div 
-              className="p-4 cursor-pointer flex items-center"
-              onClick={() => toggleSection('profile')}
-            >
-              <User className="w-5 h-5 mr-2 text-gray-600" />
-              <span className="font-medium text-gray-800">Profile Information</span>
-            </div>
-            
-            {openSection === 'profile' && (
-              <div className="px-4 pb-4">
-                <div className="space-y-3">
-                  <input 
-                    type="text" 
-                    className="w-full p-2 bg-gray-300 border border-gray-400 rounded text-sm"
-                    placeholder="Full Name"
-                  />
-                  <input 
-                    type="email" 
-                    className="w-full p-2 bg-gray-300 border border-gray-400 rounded text-sm"
-                    placeholder="Email"
-                  />
-                  <input 
-                    type="text" 
-                    className="w-full p-2 bg-gray-300 border border-gray-400 rounded text-sm"
-                    placeholder="Phone"
-                  />
-                  <input 
-                    type="text" 
-                    className="w-full p-2 bg-gray-300 border border-gray-400 rounded text-sm"
-                    placeholder="Address"
-                  />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Change Password Section */}
-          <div className="bg-gray-200 rounded-lg mb-4">
-            <div 
-              className="p-4 cursor-pointer flex items-center"
-              onClick={() => toggleSection('password')}
-            >
-              <Key className="w-5 h-5 mr-2 text-gray-600" />
-              <span className="font-medium text-gray-800">Change Password</span>
-            </div>
-            
-            {openSection === 'password' && (
-              <div className="px-4 pb-4">
-                <div className="space-y-3">
-                  <input 
-                    type="password" 
-                    className="w-full p-2 bg-gray-300 border border-gray-400 rounded text-sm"
-                    placeholder="Current password"
-                  />
-                  <input 
-                    type="password" 
-                    className="w-full p-2 bg-gray-300 border border-gray-400 rounded text-sm"
-                    placeholder="New password"
-                  />
-                  <input 
-                    type="password" 
-                    className="w-full p-2 bg-gray-300 border border-gray-400 rounded text-sm"
-                    placeholder="Confirm new password"
-                  />
-                  <div className="pt-2">
-                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded text-sm font-medium">
-                      Update password
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Security Section */}
-          <div className="bg-gray-200 rounded-lg mb-6">
-            <div 
-              className="p-4 cursor-pointer flex items-center"
-              onClick={() => toggleSection('security')}
-            >
-              <Shield className="w-5 h-5 mr-2 text-gray-600" />
-              <span className="font-medium text-gray-800">Security</span>
-            </div>
-          </div>
-
-          {/* Logout Button */}
-          <div className="text-right">
-            <button className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded text-sm font-medium">
-              logout
-            </button>
-          </div>
-        </div>
+        {renderMainContent()}
       </div>
-
+      
       {/* Right Sidebar */}
-      <div className="w-80 p-6">
-        {/* Profile Picture Section */}
-        <div className="bg-gray-300 rounded-lg p-6 mb-4 text-center">
-          <div className="w-24 h-24 bg-gray-400 rounded-full mx-auto mb-4 flex items-center justify-center">
-            <User className="w-12 h-12 text-gray-600" />
-          </div>
-          <button className="block w-full bg-gray-400 hover:bg-gray-500 text-gray-800 py-2 px-4 rounded text-sm mb-2">
-            Update profile picture
-          </button>
-          <button className="block w-full bg-gray-400 hover:bg-gray-500 text-gray-800 py-2 px-4 rounded text-sm">
-            delete profile picture
-          </button>
-        </div>
-
-        {/* Menu Items */}
-        <div className="bg-gray-300 rounded-lg p-4">
-          <div className="space-y-2">
-            <button className="w-full text-left py-2 px-3 bg-gray-400 hover:bg-gray-500 rounded text-sm text-gray-800">
-              Edit profile
-            </button>
-            <button className="w-full text-left py-2 px-3 bg-gray-400 hover:bg-gray-500 rounded text-sm text-gray-800">
-              FAQs
-            </button>
-            <button className="w-full text-left py-2 px-3 bg-gray-400 hover:bg-gray-500 rounded text-sm text-gray-800">
-              Account Settings
-            </button>
-            <button className="w-full text-left py-2 px-3 bg-gray-400 hover:bg-gray-500 rounded text-sm text-gray-800">
-              about us
-            </button>
-          </div>
-        </div>
-      </div>
+      <RightSidebar
+        studentData={studentData}
+        activeSection={activeSection}
+        setActiveSection={setActiveSection}
+        handleProfilePictureUpload={handleProfilePictureUpload}
+        handleDeleteProfilePicture={handleDeleteProfilePicture}
+        handleLogoutClick={handleLogoutClick}
+      />
     </div>
   );
 };

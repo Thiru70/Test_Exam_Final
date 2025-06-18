@@ -1,184 +1,205 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify-icon/react';
-import Folder from "../../Asstes/Folder.png";
+import { useLocation } from 'react-router-dom';
 import { FaRegEdit } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
 
 const StudentEmailForm = () => {
-    const navigate = useNavigate();
-    const [emailFormat, setEmailFormat] = useState();
-    const [heading, setHeading] = useState('');
-    const [description, setDescription] = useState('');
-    const [fileName, setFileName] = useState('');
-    const [email, setEmail] = useState('');
-    const [emails, setEmails] = useState([]);
-    const [selectedEmails, setSelectedEmails] = useState({});
+  const location = useLocation();
+  const studentData = location.state?.studentData;
 
-    const addEmail = () => {
-        if (email && !emails.includes(email)) {
-            setEmails([...emails, email]);
-            setEmail('');
-        }
-    };
+  // Updated default email template with student_id placeholder
+  const defaultEmailFormat = `Dear [Candidate Name],
 
-    const toggleSelect = (email) => {
-        setSelectedEmails((prev) => ({
-            ...prev,
-            [email]: !prev[email],
-        }));
-    };
+We are excited to inform you that we have an opening for the [Job Title] role at [Company Name]. We believe your skills and experience align well, and we would love to invite you to apply for the position.
 
-    const deleteSelected = () => {
-        const filtered = emails.filter((e) => !selectedEmails[e]);
-        setEmails(filtered);
-        setSelectedEmails({});
-    };
+Your unique Student ID: [Student ID]
+Date of Birth on file: [Date of Birth]
 
-    const handleSend = () => {
-        const toSend = emails;
-        console.log('Sending to:', toSend);
-        navigate('/Emailsuccess')
-    };
-    const handleFileChange = (e) => {
-        if (e.target.files.length > 0) {
-            setFileName(e.target.files[0].name);
-        }
-    };
+To apply, please click on the link below and fill out the application form to help ensure that you provide your skills and career information:
 
-    return (
-        <div className="p-2">
-            <h2 className="text-xl font-semibold">Basic Information</h2>
+Application Form Link: [link to our form]
 
-            <h2 className=" mt-3 text-xl font-semibold">Email Format</h2>
-            {/* Email Format Box */}
-            <div className="bg-gray-50 border border-gray-300 rounded p-4 relative">
+If you have any questions or need further assistance, feel free to contact us.
 
-                <textarea
-                    value={emailFormat}
-                    onChange={(e) => setEmailFormat(e.target.value)}
-                    className="w-full h-64 resize-none bg-transparent outline-none text-sm"
-                ></textarea>
+We look forward to receiving your application.
 
-                <div className="absolute bottom-4 right-4 flex gap-2 text-gray-600">
-                    <button >
-                        <FaRegEdit className="text-xl hover:text-black" />
-                    </button>
-                    <button >
-                        <Icon icon="mdi:content-save" className="mt-2 text-xl hover:text-black" />
-                    </button>
-                </div>
+Best regards,
+[Your Name]
+[Your Title]
+[Company Website]
+[Contact Information]`;
+
+  const [emailFormat, setEmailFormat] = useState(defaultEmailFormat);
+  const [subject, setSubject] = useState('Exciting Job Opportunity at [Company Name] – Apply Now!');
+  const [description, setDescription] = useState('Description(optional notes visible only to you)');
+  const [sending, setSending] = useState(false);
+  const [apiResponse, setApiResponse] = useState(null);
+
+  // Auto-fill data if student data is passed
+  useEffect(() => {
+    if (studentData) {
+      // Replace placeholders with student data including student_id and dob
+      let processedEmailBody = emailFormat
+        .replace(/\[Candidate Name\]/g, studentData.full_name || 'Student')
+        .replace(/\[Student ID\]/g, studentData.student_id || 'Not Available')
+        .replace(/\[Date of Birth\]/g, studentData.dob || 'Not Available')
+        .replace(/\[Job Title\]/g, 'Software Developer')
+        .replace(/\[Company Name\]/g, 'HertzWorkz')
+        .replace(/\[Your Name\]/g, 'HR Team')
+        .replace(/\[Your Title\]/g, 'Human Resources')
+        .replace(/\[Company Website\]/g, 'www.hertzworkz.com')
+        .replace(/\[Contact Information\]/g, 'support@hertzworkz.com');
+      
+      setEmailFormat(processedEmailBody);
+      
+      // Update subject
+      setSubject('Exciting Job Opportunity at HertzWorkz – Apply Now!');
+      setDescription('For support, contact us at support@hertzworkz.com');
+    }
+  }, [studentData]);
+
+  const handleSend = async () => {
+    if (!studentData || !studentData.email) {
+      alert('No student data available. Please select a student first.');
+      return;
+    }
+
+    setSending(true);
+    setApiResponse(null);
+    
+    try {
+      const requestBody = {
+        email: studentData.email,
+        full_name: studentData.full_name || 'Student',
+        dob: studentData.dob || '',
+        student_id: studentData.student_id || '', 
+        subject: subject,
+        email_body: emailFormat,
+        description: description
+      };
+
+      console.log('Sending API request:', requestBody);
+
+      const response = await fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/send-student-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      const responseData = await response.json();
+      
+      console.log('API Response Status:', response.status);
+      console.log('API Response Data:', responseData);
+      
+      setApiResponse({
+        status: response.status,
+        data: responseData,
+        success: response.ok
+      });
+
+      if (response.ok) {
+        alert(`Email sent successfully to: ${studentData.email}`);
+      } else {
+        throw new Error(responseData.message || 'Failed to send email');
+      }
+      
+    } catch (error) {
+      console.error('Error sending email:', error);
+      setApiResponse({
+        status: 'error',
+        data: { error: error.message },
+        success: false
+      });
+      alert(`Error sending email: ${error.message}`);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto p-6 bg-white">
+
+      {/* Email Format Section */}
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-3">Email format</h3>
+        
+        <div className="relative">
+          <div className="bg-gray-50 border-2 border-blue-400 rounded-lg p-4">
+            <div className="mb-2">
+              <span className="text-sm font-medium text-gray-600">Body</span>
             </div>
+            
+            <textarea
+              value={emailFormat}
+              onChange={(e) => setEmailFormat(e.target.value)}
+              className="w-full h-80 resize-none bg-transparent outline-none text-sm leading-relaxed"
+              placeholder="Enter your email template here..."
+            />
 
-            {/* Heading Input */}
-            <div>
-                <label className="block mb-1 font-semibold mt-2">Heading</label>
-                <input
-                    type="text"
-                    value={heading}
-                    onChange={(e) => setHeading(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-300 rounded px-3 py-2"
-                />
+            {/* Action Icons */}
+            <div className="absolute bottom-4 right-4 flex gap-3">
+              <button className="p-2 hover:bg-gray-200 rounded">
+                <FaRegEdit className="text-lg text-gray-600 hover:text-black" />
+              </button>
+              <button className="p-2 hover:bg-gray-200 rounded">
+                <Icon icon="mdi:content-save" className="text-lg text-gray-600 hover:text-black" />
+              </button>
             </div>
-
-            {/* Description Input */}
-            <div>
-                <label className="block mb-1 font-semibold mt-2">Description</label>
-                <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="w-full border bg-gray-50 border-gray-300 rounded px-3 py-2 h-28"
-                ></textarea>
-                <p className="text-xs text-gray-500 mt-1">
-                    Description(optional notes visible only to you)
-                </p>
-            </div>
-
-            {/* File Upload */}
-            <div className='mt-3'>
-                <label className="block font-semibold mb-2">Email list</label>
-                <label className=" font-semibold mb-2">Import email list from file</label>
-                <p className="mb-2 font-semibold">
-                    If you have a list of address in the text or csv (*.txt,*csv) format, upload it here:
-                </p>
-
-                <div className="border-2 border-dashed border-blue-400 rounded-md max-w-md w-full p-6 text-center">
-                    <label className="cursor-pointer flex flex-col items-center space-y-2">
-                        <img src={Folder} alt="Upload icon" className="w-10 h-10" />
-                        <span className="text-sm text-gray-700">Choose .txt or .csv file</span>
-                        <input
-                            type="file"
-                            accept=".txt,.csv"
-                            className="hidden"
-                            onChange={handleFileChange}
-                        />
-                    </label>
-                    <p className="text-xs mt-2 text-gray-600">OR</p>
-                    <button className="mt-2 px-4 py-1 border border-blue-600 text-blue-600 rounded text-sm hover:bg-blue-50" onChange={handleFileChange}>
-                        Browse files
-                    </button>
-
-                    {fileName && <p className="mt-2 text-sm text-green-600">{fileName} selected</p>}
-                </div>
-            </div>
-            <div>
-                <label className="block font-semibold mb-2 mt-2">Add new email</label>
-                <p className='test-sm'>Add respondents email addresses</p>
-                {/* Email Input */}
-                <div className='mb-3'>
-                    <label className="block mb-1 font-semibold mt-2">Email Address</label>
-                    <div className='flex gap-3'>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className=" max-w-md w-full border border-[#B1B1B1] rounded px-3 py-2"
-                        />
-                        <button className='border border-[#000000] text-[#525252] px-3 py-2' onClick={addEmail}>+ Add</button>
-                    </div>
-                </div>
-            </div>
-            <div>
-                {/* Email List */}
-                {emails.length > 0 && (
-                    <div>
-                        <h4 className="font-semibold mt-6 mb-2">Delete selected</h4>
-                        <div className="border rounded  max-w-lg w-full">
-                            <div className=" px-10 py-2 font-semibold">Email addresses</div>
-                            {emails.map((e, index) => (
-                                <div
-                                    key={e}
-                                    className="flex items-center px-4 py-2 text-sm text-gray-700"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        className="mr-2"
-                                        checked={!!selectedEmails[e]}
-                                        onChange={() => toggleSelect(e)}
-                                    />
-                                    <span className="w-6">{index + 1}</span>
-                                    <span className="ml-4">{e}</span>
-                                </div>
-                            ))}
-                        </div>
-                        <button
-                            onClick={deleteSelected}
-                            className="mt-3 text-red-600 border border-red-500 px-4 py-2 mb-2 text-sm"
-                        >
-                            Delete selected
-                        </button>
-                    </div>
-                )}
-
-                {/* Send Button */}
-                <button
-                    onClick={handleSend}
-                    className="bg-[#0079EA] hover:bg-blue-700 text-white font-medium px-6 py-2 rounded"
-                >
-                    Send
-                </button>
-            </div>
+          </div>
         </div>
-    );
+      </div>
+
+      {/* Subject Section */}
+      <div className="mb-6">
+        <label className="block text-lg font-semibold mb-3">Subject</label>
+        <div className="bg-gray-100 rounded px-3 py-2">
+          <input
+            type="text"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            className="w-full bg-transparent outline-none text-sm"
+            placeholder="Enter email subject"
+          />
+        </div>
+      </div>
+
+      {/* Description Section */}
+      <div className="mb-8">
+        <label className="block text-lg font-semibold mb-3">Description</label>
+        <div className="bg-gray-100 rounded p-3 min-h-[100px]">
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full bg-transparent outline-none text-sm resize-none h-20"
+            placeholder="Description(optional notes visible only to you)"
+          />
+        </div>
+      </div>
+
+      
+
+      {/* Send Button */}
+      <button
+        onClick={handleSend}
+        disabled={sending || !studentData}
+        className={`${
+          sending || !studentData
+            ? 'bg-gray-400 cursor-not-allowed' 
+            : 'bg-blue-600 hover:bg-blue-700'
+        } text-white font-medium px-8 py-3 rounded-lg transition-colors`}
+      >
+        {sending ? 'Sending...' : 'Send'}
+      </button>
+
+      {!studentData && (
+        <p className="text-red-600 text-sm mt-2">
+          Please select a student from the student table to send an email.
+        </p>
+      )}
+    </div>
+  );
 };
 
 export default StudentEmailForm;

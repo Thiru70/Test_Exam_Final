@@ -83,7 +83,9 @@ const StudentTable = () => {
                         current_cgpa: student.current_cgpa,
                         college_name: student.college_name,
                         course: student.course,
-                        contact: student.contact
+                        contact: student.contact,
+                        dob: student.dob, // Store DOB from API
+                        student_id: student.student_id // Store student_id from API
                     };
                     
                     // Check eligibility based on API criteria
@@ -122,6 +124,21 @@ const StudentTable = () => {
         if (pageNum >= 1 && pageNum <= totalPages) {
             setCurrentPage(pageNum);
         }
+    };
+
+    // Handle view button click - navigate with student data including dob and student_id
+    const handleViewClick = (student) => {
+        navigate('/studentEmail-form', { 
+            state: { 
+                studentData: {
+                    email: student.email,
+                    full_name: student.name,
+                    dob: student.dob || '',
+                    student_id: student.student_id || '', // Pass student_id from API
+                    id: student.id
+                }
+            }
+        });
     };
 
     if (loading) {
@@ -216,6 +233,7 @@ const StudentTable = () => {
                                     <td className="px-4 py-2">{student.email}</td>
                                     <td className="px-4 py-2">
                                         <button 
+                                           
                                             className="text-blue-600  hover:scale-110 transition" 
                                             onClick={() => navigate('/studentEmail-form')}
                                         >

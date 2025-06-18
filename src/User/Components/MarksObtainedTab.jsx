@@ -1,89 +1,280 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import ResultAnalyzer from "./ResultAnalyzer"; // Import the new component
 
-const MarksObtainedTab = ({ test }) => {
+const MarksObtainedTab = ({ test, testID, submissionID }) => {
   const [showAnalyzer, setShowAnalyzer] = useState(false);
-  const [activeAnalyzerTab, setActiveAnalyzerTab] = useState('consolidated');
+  const [apiData, setApiData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Sample data - you can derive this from your test prop
-  const marksData = {
-    timeSpent: "00:24:06",
-    testScore: "66.00 / 100.00",
-    sections: [
-      {
-        name: "Aptitude test",
-        score: 66,
-        averageScore: 66,
-        topScore: 90,
-        leastScore: 45
+  // Extract student ID from test or use a default
+  const studentId = localStorage.getItem('student_id');
+ 
+  // Fetch API data
+  useEffect(() => {
+    const fetchTestResults = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/user-test/student-results/${studentId}`);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setApiData(data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching test results:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
-    ]
-  };
+    };
 
-  // Sample analyzer data
-  const analyzerData = {
-    consolidated: {
-      performanceStatus: {
-        sections: [
-          {
-            sNo: "01.",
-            section: "Aptitude test",
-            totalMarks: 100,
-            score: 66,
-            averageScore: 66,
-            topScore: 90,
-            leastScore: 45
+    if (studentId) {
+      fetchTestResults();
+    }
+  }, [studentId]);
+
+
+
+// Alternative approach - if you want to prioritize results with actual data:
+const getCurrentTestResult = () => {
+  if (!apiData || !apiData.results) return null;
+
+  // First try exact matches
+  let result = apiData.results.find(result => 
+    result.submissionId === submissionID || 
+    result.testId === testID
+  );
+
+  // If found but it's an empty result (score 0 and no duration/timeTaken), 
+  // try to find a better match for the same test
+  if (result && (result.score === "0" || result.score === 0) && 
+      (result.duration === "0" || !result.duration) && 
+      (!result.timeTaken || result.timeTaken === "0")) {
+    
+    // Look for another result with the same testId but with actual data
+    const betterResult = apiData.results.find(r => 
+      r.testId === result.testId && 
+      r.submissionId !== result.submissionId &&
+      (parseInt(r.score || r.totalScore || 0) > 0 || 
+       (r.duration && r.duration !== "0") || 
+       (r.timeTaken && r.timeTaken !== "0"))
+    );
+    
+    if (betterResult) {
+      return betterResult;
+    }
+  }
+
+  return result;
+};
+
+  // Helper function to format time
+ // Improved formatTime function
+const formatTime = (seconds) => {
+  // Handle null, undefined, or invalid values
+  if (!seconds || isNaN(seconds) || seconds < 0) {
+    return "00:00:00";
+  }
+  
+  // Convert to integer if it's a string
+  const totalSeconds = parseInt(seconds);
+  
+  // Calculate hours, minutes, and seconds
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const remainingSeconds = totalSeconds % 60;
+  
+  // Format with leading zeros
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+};
+
+  // Calculate statistics from API data
+// Updated calculateMarksData function with proper time calculation
+const calculateMarksData = () => {
+  const currentResult = getCurrentTestResult();
+  if (!currentResult) {
+    return {
+      timeSpent: "N/A",
+      testScore: "N/A",
+      sections: []
+    };
+  }
+
+  // Calculate time spent with improved logic
+  let timeSpent = "N/A";
+  
+  // For coding tests - use timeTaken
+  if (currentResult.timeTaken && currentResult.timeTaken !== "0") {
+    timeSpent = formatTime(parseInt(currentResult.timeTaken));
+  }
+  // For MCQ tests - calculate from startTime and endTime
+  else if (currentResult.startTime && currentResult.endTime) {
+    try {
+      const start = new Date(currentResult.startTime);
+      const end = new Date(currentResult.endTime);
+      const diffInMilliseconds = end - start;
+      const diffInSeconds = Math.floor(diffInMilliseconds / 1000);
+      
+      if (diffInSeconds > 0) {
+        timeSpent = formatTime(diffInSeconds);
+      } else {
+        // If the calculated time is 0 or negative, show minimal time
+        timeSpent = "00:00:01";
+      }
+    } catch (error) {
+      console.error('Error calculating time from timestamps:', error);
+      timeSpent = "N/A";
+    }
+  }
+  // Fallback to duration if available and not zero
+  else if (currentResult.duration && currentResult.duration !== "0") {
+    timeSpent = formatTime(parseInt(currentResult.duration));
+  }
+
+  // Calculate test score
+  const score = currentResult.score || currentResult.totalScore || "0";
+  const totalMarks = currentResult.totalMarks || "0";
+  const testScore = `${score} / ${totalMarks}`;
+
+  // Get all results of the same type for comparison
+  const sameTypeResults = apiData.results.filter(r => r.type === currentResult.type);
+  const scores = sameTypeResults.map(r => parseInt(r.score || r.totalScore || 0));
+  
+  // Calculate statistics
+  const averageScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+  const topScore = scores.length > 0 ? Math.max(...scores) : 0;
+  const leastScore = scores.length > 0 ? Math.min(...scores) : 0;
+
+  const sections = [{
+    name: `${currentResult.type} Test`,
+    score: parseInt(score),
+    averageScore: averageScore,
+    topScore: topScore,
+    leastScore: leastScore
+  }];
+
+  return {
+    timeSpent,
+    testScore,
+    sections
+  };
+};
+
+  // Calculate analyzer data
+  const calculateAnalyzerData = () => {
+    const currentResult = getCurrentTestResult();
+    if (!currentResult) return null;
+
+    // Get all results of the same type for comparison
+    const sameTypeResults = apiData.results.filter(r => r.type === currentResult.type);
+    const scores = sameTypeResults.map(r => parseInt(r.score || r.totalScore || 0));
+    
+    const averageScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+    const topScore = scores.length > 0 ? Math.max(...scores) : 0;
+    const leastScore = scores.length > 0 ? Math.min(...scores) : 0;
+
+    let questionData = {
+      totalQuestions: 0,
+      attempted: 0,
+      correct: 0,
+      wrong: 0,
+      skipped: 0
+    };
+
+    let detailedQuestions = [];
+
+    if (currentResult.type === 'MCQ') {
+      const answers = currentResult.answers || [];
+      questionData = {
+        totalQuestions: answers.length,
+        attempted: answers.length,
+        correct: answers.filter(answer => answer.status === 'correct').length,
+        wrong: answers.filter(answer => answer.status === 'incorrect').length,
+        skipped: 0 // MCQ tests typically don't have skipped questions in this data structure
+      };
+
+      detailedQuestions = answers.map((answer, index) => ({
+        questionNo: index + 1,
+        type: "Multi Choice Type Question",
+        question: answer.question,
+        options: answer.options,
+        selectedAnswer: answer.selectedOption,
+        isCorrect: answer.status === 'correct'
+      }));
+    } else if (currentResult.type === 'coding') {
+      const questions = currentResult.questions || [];
+      const totalTestCases = questions.reduce((sum, q) => sum + (q.testCases ? q.testCases.length : 0), 0);
+      const passedTestCases = questions.reduce((sum, q) => 
+        sum + (q.testCases ? q.testCases.filter(tc => tc.status === 'passed').length : 0), 0);
+      const attemptedQuestions = questions.filter(q => 
+        q.testCases && q.testCases.some(tc => tc.status !== 'not_attempted')).length;
+
+      questionData = {
+        totalQuestions: questions.length,
+        attempted: attemptedQuestions,
+        correct: questions.filter(q => parseInt(q.awardedMarks) > 0).length,
+        wrong: attemptedQuestions - questions.filter(q => parseInt(q.awardedMarks) > 0).length,
+        skipped: questions.length - attemptedQuestions
+      };
+
+      detailedQuestions = questions.map((question, index) => ({
+        questionNo: index + 1,
+        type: "Coding Question",
+        question: question.question,
+        totalMarks: question.totalMarks,
+        awardedMarks: question.awardedMarks,
+        testCases: question.testCases,
+        isCorrect: parseInt(question.awardedMarks) > 0
+      }));
+    }
+
+    return {
+      consolidated: {
+        performanceStatus: {
+          sections: [
+            {
+              sNo: "01.",
+              section: `${currentResult.type} Test`,
+              totalMarks: parseInt(currentResult.totalMarks),
+              score: parseInt(currentResult.score || currentResult.totalScore || 0),
+              averageScore: averageScore,
+              topScore: topScore,
+              leastScore: leastScore
+            }
+          ],
+          total: {
+            totalMarks: parseInt(currentResult.totalMarks),
+            score: parseInt(currentResult.score || currentResult.totalScore || 0),
+            averageScore: averageScore,
+            topScore: topScore,
+            leastScore: leastScore
           }
-        ],
-        total: {
-          totalMarks: 100,
-          score: 66,
-          averageScore: 66,
-          topScore: 90,
-          leastScore: 45
+        },
+        questionStatus: {
+          sections: [
+            {
+              sNo: "01.",
+              section: `${currentResult.type} Test`,
+              totalQuestions: questionData.totalQuestions,
+              attempted: questionData.attempted,
+              correct: questionData.correct,
+              wrong: questionData.wrong,
+              skipped: questionData.skipped
+            }
+          ],
+          total: questionData
         }
       },
-      questionStatus: {
-        sections: [
-          {
-            sNo: "01.",
-            section: "Aptitude test",
-            totalQuestions: 30,
-            attempted: 28,
-            correct: 21,
-            wrong: 7,
-            skipped: 2
-          }
-        ],
-        total: {
-          totalQuestions: 30,
-          attempted: 28,
-          correct: 21,
-          wrong: 7,
-          skipped: 2
-        }
+      detailed: {
+        testName: `${currentResult.type} Test (${questionData.totalQuestions})`,
+        testType: currentResult.type,
+        questions: detailedQuestions
       }
-    },
-    detailed: {
-      testName: "Aptitude Test (30)",
-      questions: [
-        {
-          questionNo: 1,
-          type: "Multi Choice Type Question",
-          question: "Eesha Works For 1800 Metres She Is Involved In A Mission To Intercept A Comet That Is Likely To Collide With In 1 Month.She Is Developing A C Program To Calculate The Trajectory Of The Missile To Be Launched To Intercept And Descending The Approaching Comet In Order To Achieve Highest Accuracy Of The Missile Trajectory What Data Type Should She Use For The Variables In Her Equation.?",
-          options: ["Double", "Float", "Long int", "int"],
-          selectedAnswer: "Double",
-          isCorrect: true
-        },
-        {
-          questionNo: 2,
-          type: "Multi Choice Type Question", 
-          question: "Eesha Works For 1800 Metres She Is Involved In A Mission To Intercept A Comet That Is Likely To Collide With In 1 Month.She Is Developing A C Program To Calculate The Trajectory Of The Missile To Be Launched To Intercept And Descending The Approaching Comet In Order To Achieve Highest Accuracy Of The Missile Trajectory What Data Type Should She Use For The Variables In Her Equation.?",
-          options: ["Double", "Float", "Long int", "int"],
-          selectedAnswer: "Double",
-          isCorrect: true
-        }
-      ]
-    }
+    };
   };
 
   const handleAnalyzeResult = () => {
@@ -93,6 +284,42 @@ const MarksObtainedTab = ({ test }) => {
   const closeAnalyzer = () => {
     setShowAnalyzer(false);
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-b-lg p-6">
+        <div className="flex items-center justify-center">
+          <div className="text-gray-500">Loading test results...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-b-lg p-6">
+        <div className="text-red-600">
+          Error loading test results: {error}
+        </div>
+      </div>
+    );
+  }
+
+  // Show no data state
+  if (!getCurrentTestResult()) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-b-lg p-6">
+        <div className="text-gray-500">
+          No test results found for Test ID: {testID} / Submission ID: {submissionID}
+        </div>
+      </div>
+    );
+  }
+
+  const marksData = calculateMarksData();
+  const analyzerData = calculateAnalyzerData();
 
   return (
     <>
@@ -164,195 +391,12 @@ const MarksObtainedTab = ({ test }) => {
         </div>
       </div>
 
-      {/* Analyzer Section - Displayed below the marks table */}
-      {showAnalyzer && (
-        <div className="mt-6">
-          {/* Header */}
-          <div className="flex justify-between items-center p-4  bg-gray-50 rounded-t-lg">
-            <h2 className="text-lg font-semibold text-gray-900"></h2>
-            <button
-              onClick={closeAnalyzer}
-              className="text-gray-500 hover:text-gray-700 text-xl font-semibold bg-transparent border-none cursor-pointer"
-            >
-              ×
-            </button>
-          </div>
-
-          {/* Tab Navigation */}
-          <div className="flex">
-            <button
-              onClick={() => setActiveAnalyzerTab('consolidated')}
-              className={`px-6 py-3 text-sm font-medium border-b-2 ${
-                activeAnalyzerTab === 'consolidated'
-                  ? 'bg-blue-500 text-white border-blue-500'
-                  : 'text-gray-600 hover:text-gray-800 bg-gray-100 border-transparent'
-              }`}
-            >
-              Consolidated
-            </button>
-            <button
-              onClick={() => setActiveAnalyzerTab('detailed')}
-              className={`px-6 py-3 text-sm font-medium border-b-2 ${
-                activeAnalyzerTab === 'detailed'
-                  ? 'bg-blue-500 text-white border-blue-500'
-                  : 'text-gray-600 hover:text-gray-800 bg-gray-100 border-transparent'
-              }`}
-            >
-              Detailed
-            </button>
-          </div>
-
-          {/* Content */}
-          <div className="p-6">
-            {activeAnalyzerTab === 'consolidated' && (
-              <div className="space-y-6">
-                {/* Performance Status */}
-                <div>
-                  <div className="bg-blue-500 text-white px-4 py-2 rounded-t-lg">
-                    <h3 className="font-medium">Performance Status</h3>
-                  </div>
-                  <div className="border border-gray-200 rounded-b-lg overflow-hidden">
-                    <table className="w-full">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">S.No</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sections</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total Marks</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Score</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Average score</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Top Score</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">least score</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200">
-                        {analyzerData.consolidated.performanceStatus.sections.map((section, index) => (
-                          <tr key={index} className="bg-white">
-                            <td className="px-4 py-3 text-sm text-gray-900">{section.sNo}</td>
-                            <td className="px-4 py-3 text-sm text-gray-900">{section.section}</td>
-                            <td className="px-4 py-3 text-sm text-gray-900 text-center">{section.totalMarks}</td>
-                            <td className="px-4 py-3 text-sm text-gray-900 text-center">{section.score}</td>
-                            <td className="px-4 py-3 text-sm text-gray-900 text-center">{section.averageScore}</td>
-                            <td className="px-4 py-3 text-sm text-gray-900 text-center">{section.topScore}</td>
-                            <td className="px-4 py-3 text-sm text-gray-900 text-center">{section.leastScore}</td>
-                          </tr>
-                        ))}
-                        <tr className="bg-gray-50 font-medium">
-                          <td className="px-4 py-3 text-sm text-gray-900"></td>
-                          <td className="px-4 py-3 text-sm text-gray-900">total</td>
-                          <td className="px-4 py-3 text-sm text-gray-900 text-center">{analyzerData.consolidated.performanceStatus.total.totalMarks}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900 text-center">{analyzerData.consolidated.performanceStatus.total.score}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900 text-center">{analyzerData.consolidated.performanceStatus.total.averageScore}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900 text-center">{analyzerData.consolidated.performanceStatus.total.topScore}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900 text-center">{analyzerData.consolidated.performanceStatus.total.leastScore}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Question Status */}
-                <div>
-                  <div className="bg-blue-500 text-white px-4 py-2 rounded-t-lg">
-                    <h3 className="font-medium">Question Status</h3>
-                  </div>
-                  <div className="border border-gray-200 rounded-b-lg overflow-hidden">
-                    <table className="w-full">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">S.No</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sections</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total question</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Question attempted</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Question correct</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Question Wrong</th>
-                          <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Question Skipped</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200">
-                        {analyzerData.consolidated.questionStatus.sections.map((section, index) => (
-                          <tr key={index} className="bg-white">
-                            <td className="px-4 py-3 text-sm text-gray-900">{section.sNo}</td>
-                            <td className="px-4 py-3 text-sm text-gray-900">{section.section}</td>
-                            <td className="px-4 py-3 text-sm text-gray-900 text-center">{section.totalQuestions}</td>
-                            <td className="px-4 py-3 text-sm text-gray-900 text-center">{section.attempted}</td>
-                            <td className="px-4 py-3 text-sm text-gray-900 text-center">{section.correct}</td>
-                            <td className="px-4 py-3 text-sm text-gray-900 text-center">{section.wrong}</td>
-                            <td className="px-4 py-3 text-sm text-gray-900 text-center">{section.skipped}</td>
-                          </tr>
-                        ))}
-                        <tr className="bg-gray-50 font-medium">
-                          <td className="px-4 py-3 text-sm text-gray-900"></td>
-                          <td className="px-4 py-3 text-sm text-gray-900">total</td>
-                          <td className="px-4 py-3 text-sm text-gray-900 text-center">{analyzerData.consolidated.questionStatus.total.totalQuestions}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900 text-center">{analyzerData.consolidated.questionStatus.total.attempted}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900 text-center">{analyzerData.consolidated.questionStatus.total.correct}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900 text-center">{analyzerData.consolidated.questionStatus.total.wrong}</td>
-                          <td className="px-4 py-3 text-sm text-gray-900 text-center">{analyzerData.consolidated.questionStatus.total.skipped}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeAnalyzerTab === 'detailed' && (
-              <div className="bg-gray-50 min-h-screen">
-                {/* Test Name Header with blue dot */}
-                <div className="mb-6 p-4 bg-white rounded-lg">
-                  <div className="flex items-center gap-2 text-blue-600 text-sm font-medium">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                    {analyzerData.detailed.testName}
-                  </div>
-                </div>
-
-                {/* Questions List */}
-                <div className="space-y-4">
-                  {analyzerData.detailed.questions.map((question, index) => (
-                    <div key={index} className="bg-white rounded-lg border border-gray-200 p-4">
-                      {/* Question Header */}
-                      <div className="mb-4">
-                        <div className="text-sm font-medium text-gray-900 mb-1">
-                          Question No: {question.questionNo}
-                        </div>
-                        <div className="text-sm text-gray-600 font-medium mb-3">
-                          {question.type}
-                        </div>
-                        <div className="text-sm text-gray-900 leading-relaxed">
-                          {question.questionNo}. {question.question}
-                        </div>
-                      </div>
-
-                      {/* Options */}
-                      <div className="space-y-2 ml-4">
-                        {question.options.map((option, optionIndex) => (
-                          <div key={optionIndex} className="flex items-center gap-3">
-                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                              question.selectedAnswer === option
-                                ? 'border-blue-500 bg-blue-500'
-                                : 'border-gray-300'
-                            }`}>
-                              {question.selectedAnswer === option && (
-                                <div className="w-2 h-2 bg-white rounded-full"></div>
-                              )}
-                            </div>
-                            <span className={`text-sm ${
-                              question.selectedAnswer === option 
-                                ? 'text-blue-600 font-medium' 
-                                : 'text-gray-700'
-                            }`}>
-                              {option}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+      {/* Analyzer Section - Now using the separate component */}
+      {showAnalyzer && analyzerData && (
+        <ResultAnalyzer 
+          analyzerData={analyzerData}
+          onClose={closeAnalyzer}
+        />
       )}
     </>
   );

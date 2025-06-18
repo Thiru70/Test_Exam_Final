@@ -89,14 +89,13 @@ const TestCompletionPage = () => {
     };
   }, [navigate]);
 
+  const handleGoToDashboard = () => {
+    navigate('/student-dashboard');
+  };
+
   return (
     <div className="h-screen flex flex-col bg-white overflow-hidden">
-      {/* Header */}
-      <div className="w-full h-[80px] bg-[#14a7dc] flex-shrink-0">
-        <h1 className="text-[28px] font-semibold text-white font-poppins leading-[42px] ml-[60px] mt-[19px]">
-          Aptitude test
-        </h1>
-      </div>
+
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-4">
@@ -152,6 +151,14 @@ const TestCompletionPage = () => {
         <p className="text-[16px] font-normal text-black font-montserrat leading-[19px] text-center mt-[15px]">
           You will be notified when you test results were released
         </p>
+        
+        {/* Navigation Link */}
+        <button
+          onClick={handleGoToDashboard}
+          className="text-[16px] font-medium text-blue-600 font-montserrat leading-[19px] text-center mt-[20px] underline hover:text-blue-800 transition-colors duration-200 cursor-pointer"
+        >
+          Go to Exam Portal
+        </button>
       </div>
     </div>
   );

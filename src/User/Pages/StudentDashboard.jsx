@@ -43,7 +43,10 @@ const Dashboard = () => {
       <Sidebar activeItem={activeItem} setActiveItem={setActiveItem} />
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title={getHeaderTitle()} />
+      <Header 
+      activeItem={activeItem} 
+      setActiveItem={setActiveItem} 
+    />
         <main className="flex-1 overflow-y-auto">
           {renderMainContent()}
         </main>

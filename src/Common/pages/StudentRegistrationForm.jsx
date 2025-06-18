@@ -92,7 +92,7 @@ const StudentRegistrationForm = () => {
 
     return new Promise((resolve) => {
       setTimeout(() => {
-        const s3Url = `https://s3.amazonaws.com/exam-hertzworkz/${file.name}`;
+        const s3Url = `https://s3.amazonaws.com/ehertzworkzxam-/${file.name}`;
         console.log('✅ S3 Upload completed successfully!');
         console.log('Generated S3 URL:', s3Url);
         console.log('URL components:', {

@@ -1,7 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, RefreshCw, Check, AlertCircle } from 'lucide-react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 const FaceDetectionComponent = ({ onNavigateToAudio }) => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
+  // Get parameters from URL
+  const studentId = searchParams.get('studentId');
+  const testId = searchParams.get('testId');
+
   const [isDetected, setIsDetected] = useState(false);
   const [capturedPhoto, setCapturedPhoto] = useState(null);
   const [stream, setStream] = useState(null);
@@ -18,6 +26,18 @@ const FaceDetectionComponent = ({ onNavigateToAudio }) => {
   const animationIdRef = useRef(null);
 
   useEffect(() => {
+    // Check if required parameters are present
+    if (!studentId || !testId) {
+      setError('Missing required parameters. Please start the test from the tests page.');
+      return;
+    }
+
+    console.log('Face Detection initialized with:', { studentId, testId });
+    
+    // Store parameters in localStorage as backup
+    localStorage.setItem('currentStudentId', studentId);
+    localStorage.setItem('currentTestId', testId);
+
     startCamera();
     loadTensorFlowAndModel();
 
@@ -29,7 +49,7 @@ const FaceDetectionComponent = ({ onNavigateToAudio }) => {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, []);
+  }, [studentId, testId]);
 
   const startCamera = async () => {
     try {
@@ -252,15 +272,43 @@ const FaceDetectionComponent = ({ onNavigateToAudio }) => {
 
     const photoDataUrl = canvas.toDataURL('image/jpeg');
     setCapturedPhoto(photoDataUrl);
+    
+    // Store captured image with student and test context
     localStorage.setItem('capturedFaceImage', photoDataUrl);
+    localStorage.setItem('faceDetectionCompleted', 'true');
+    
+    console.log('Photo captured for student:', studentId, 'test:', testId);
   };
 
   const retakePhoto = () => {
     setCapturedPhoto(null);
+    localStorage.removeItem('faceDetectionCompleted');
+  };
+
+  const handleNext = () => {
+    if (capturedPhoto) {
+      // Store the image data before navigating
+      localStorage.setItem('capturedFaceImage', capturedPhoto);
+      localStorage.setItem('faceDetectionCompleted', 'true');
+      
+      // Navigate to audio detection with parameters
+      if (onNavigateToAudio) {
+        onNavigateToAudio();
+      } else {
+        // Default navigation with parameters
+        navigate(`/audio-detection?studentId=${studentId}&testId=${testId}`);
+      }
+    }
+  };
+
+  const handleBackToTests = () => {
+    navigate('/tests');
   };
 
   const getFaceStatusMessage = () => {
+    if (!studentId || !testId) return "Missing required parameters";
     if (isModelLoading) return "Loading face detection model...";
+    if (error && error.includes('Missing required parameters')) return error;
     if (error) return error;
     if (!isModelLoaded) return "Model not loaded";
     if (detectedFaces.length === 0) return "No face detected. Please ensure you are in a well-lit environment and positioned properly.";
@@ -275,6 +323,7 @@ const FaceDetectionComponent = ({ onNavigateToAudio }) => {
   };
 
   const getFaceStatusColor = () => {
+    if (!studentId || !testId) return "text-red-600";
     if (isModelLoading || error || !isModelLoaded) return "text-gray-600";
     if (detectedFaces.length === 0 || detectedFaces.length > 1) return "text-red-600";
     if (detectedFaces.length === 1) {
@@ -283,21 +332,41 @@ const FaceDetectionComponent = ({ onNavigateToAudio }) => {
     return "text-gray-600";
   };
 
+  // If missing parameters, show error with back button
+  if (!studentId || !testId) {
+    return (
+      <div className="min-h-screen w-full p-4 flex items-center justify-center">
+        <div className="max-w-md mx-auto p-6 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex items-center mb-4">
+            <AlertCircle className="w-6 h-6 text-red-600 mr-2" />
+            <h2 className="text-lg font-semibold text-red-800">Missing Parameters</h2>
+          </div>
+          <p className="text-red-700 mb-4">
+            Student ID and Test ID are required to proceed. Please start the test from the tests page.
+          </p>
+          <button
+            onClick={handleBackToTests}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200"
+          >
+            Back to Tests
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen w-full p-4">
       <div className="max-w-4xl mx-auto p-6">
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
-          Face Detection
-        </h1>
+        <div className="mb-4 flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-800">
+            Face Detection
+          </h1>
+        </div>
 
-        {isModelLoading && (
-          <div className="mb-4 p-4 bg-blue-100 text-blue-800 rounded-lg flex items-center justify-center">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-800 mr-3"></div>
-            <span>Loading face detection model...</span>
-          </div>
-        )}
+        
 
-        {error && (
+        {error && !error.includes('Missing required parameters') && (
           <div className="mb-4 p-4 bg-yellow-100 text-yellow-800 rounded-lg flex items-center justify-center">
             <AlertCircle className="w-5 h-5 mr-2" />
             <span>{error}</span>
@@ -324,19 +393,6 @@ const FaceDetectionComponent = ({ onNavigateToAudio }) => {
               <p className="mb-2 font-medium text-blue-600">
                 Position your face in the center of the frame and look straight ahead
               </p>
-
-              {isModelLoaded && (
-                <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                  <p className="text-xs text-gray-500 mb-2">Detection Info:</p>
-                  <p className="text-sm">Faces detected: <span className="font-bold">{detectedFaces.length}</span></p>
-                  {detectedFaces.length > 0 && (
-                    <>
-                      <p className="text-sm">Confidence: <span className="font-bold">{(detectedFaces[0].probability * 100).toFixed(1)}%</span></p>
-                      <p className="text-sm">Properly positioned: <span className={`font-bold ${isCorrectPosition ? 'text-green-600' : 'text-red-600'}`}>{isCorrectPosition ? 'Yes' : 'No'}</span></p>
-                    </>
-                  )}
-                </div>
-              )}
             </div>
           </div>
 
@@ -421,18 +477,19 @@ const FaceDetectionComponent = ({ onNavigateToAudio }) => {
 
             {capturedPhoto && (
               <button
-                onClick={() => {
-                  // Store the image data before navigating
-                  if (capturedPhoto) {
-                    localStorage.setItem('capturedFaceImage', capturedPhoto);
-                  }
-                  onNavigateToAudio && onNavigateToAudio();
-                }}
+                onClick={handleNext}
                 className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 w-32"
               >
                 Next
               </button>
             )}
+
+            <button
+              onClick={handleBackToTests}
+              className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 w-32 text-sm"
+            >
+              Back to Tests
+            </button>
           </div>
         </div>
       </div>
