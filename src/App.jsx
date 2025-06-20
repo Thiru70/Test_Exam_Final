@@ -95,11 +95,11 @@ const InterviewInvitationWrapper = () => {
 
 const ProtectedRoute = ({ children }) => {
   const token = Cookies.get("token");
+  console.log(token,"token")
   return token ? children : <Navigate to="/company-login" replace />;
 };
 
 function App() {
-
   return (
     <Router>
       <Routes>
