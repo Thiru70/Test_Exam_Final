@@ -9,13 +9,18 @@ const AudioDetection = ({ onNavigateNext }) => {
   const [toast, setToast] = useState(null);
   const [noiseLevel, setNoiseLevel] = useState(0);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [cleanPeriodStart, setCleanPeriodStart] = useState(null);
+  const [hasShownAlert, setHasShownAlert] = useState(false);
+  
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);
   const dataArrayRef = useRef(null);
   const animationFrameRef = useRef(null);
+  const successTimeoutRef = useRef(null);
 
   const NOISE_THRESHOLD = 20; // Adjusted for actual audio levels
   const HIGH_NOISE_THRESHOLD = 40;
+  const CLEAN_PERIOD_DURATION = 10000; // 10 seconds in milliseconds
 
   const startAudioDetection = async () => {
     try {
@@ -74,32 +79,55 @@ const AudioDetection = ({ onNavigateNext }) => {
         const normalizedLevel = Math.min(100, (rms / 128) * 100);
         setNoiseLevel(normalizedLevel);
         
-        // Show warnings based on noise level
+        // Handle noise level logic
         if (normalizedLevel > HIGH_NOISE_THRESHOLD) {
+          // High noise - show error toast and reset clean period
           if (!toast || toast.type !== 'error') {
             setToast({
               message: "Noise level is very high! Please find a quieter environment.",
               type: "error"
             });
           }
+          setHasShownAlert(true);
+          setCleanPeriodStart(null);
+          if (successTimeoutRef.current) {
+            clearTimeout(successTimeoutRef.current);
+            successTimeoutRef.current = null;
+          }
         } else if (normalizedLevel > NOISE_THRESHOLD) {
+          // Moderate noise - show warning toast and reset clean period
           if (!toast || toast.type !== 'warning') {
             setToast({
               message: "Background noise detected. Please try to minimize noise sources.",
               type: "warning"
             });
           }
+          setHasShownAlert(true);
+          setCleanPeriodStart(null);
+          if (successTimeoutRef.current) {
+            clearTimeout(successTimeoutRef.current);
+            successTimeoutRef.current = null;
+          }
         } else if (normalizedLevel <= NOISE_THRESHOLD && !detectionResult) {
-          // Good noise level - show success after 2 seconds of stable low noise
-          setTimeout(() => {
-            if (noiseLevel <= NOISE_THRESHOLD) {
-              setDetectionResult('success');
-              setToast({
-                message: "Audio detection completed successfully! Environment is suitable for testing.",
-                type: "success"
-              });
-            }
-          }, 2000);
+          // Low noise - start or continue clean period
+          if (!cleanPeriodStart) {
+            // Start new clean period
+            setCleanPeriodStart(Date.now());
+            setHasShownAlert(false);
+            setToast(null); // Clear any existing toasts
+            
+            // Set timeout for success
+            successTimeoutRef.current = setTimeout(() => {
+              // Only show success if no alerts were shown during the clean period
+              if (!hasShownAlert) {
+                setDetectionResult('success');
+                setToast({
+                  message: "Audio detection completed successfully! Environment is suitable for testing.",
+                  type: "success"
+                });
+              }
+            }, CLEAN_PERIOD_DURATION);
+          }
         }
       }
       
@@ -115,10 +143,17 @@ const AudioDetection = ({ onNavigateNext }) => {
     setDetectionResult(null);
     setNoiseLevel(0);
     setToast(null);
+    setCleanPeriodStart(null);
+    setHasShownAlert(false);
     
     // Clean up previous audio context and animation frame
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
+    }
+    
+    if (successTimeoutRef.current) {
+      clearTimeout(successTimeoutRef.current);
+      successTimeoutRef.current = null;
     }
     
     if (audioContextRef.current) {
@@ -160,11 +195,23 @@ const AudioDetection = ({ onNavigateNext }) => {
     return 'Low';
   };
 
+  const getRemainingTime = () => {
+    if (cleanPeriodStart && !detectionResult) {
+      const elapsed = Date.now() - cleanPeriodStart;
+      const remaining = Math.max(0, CLEAN_PERIOD_DURATION - elapsed);
+      return Math.ceil(remaining / 1000);
+    }
+    return 0;
+  };
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
+      }
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
       }
       if (audioContextRef.current) {
         audioContextRef.current.close();
@@ -236,7 +283,6 @@ const AudioDetection = ({ onNavigateNext }) => {
             </div>
           </div>
 
-
           {/* Status Messages */}
           <div className="mb-8">
             {detectionResult === 'success' ? (
@@ -256,7 +302,19 @@ const AudioDetection = ({ onNavigateNext }) => {
                   Please stay quiet for optimal detection
                 </p>
                 
-                {/* Real-time Alert Messages */}
+                {/* Clean period countdown */}
+                {cleanPeriodStart && getRemainingTime() > 0 && (
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
+                      <p className="text-blue-800 text-sm font-medium">
+                        Clean environment detected - {getRemainingTime()}s remaining for success
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Real-time Alert Messages - Only show if noise is detected */}
                 {noiseLevel > HIGH_NOISE_THRESHOLD && (
                   <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                     <div className="flex items-center space-x-2">
@@ -274,17 +332,6 @@ const AudioDetection = ({ onNavigateNext }) => {
                       <AlertTriangle className="w-5 h-5 text-yellow-600" />
                       <p className="text-yellow-800 text-sm font-medium">
                         Warning: Elevated background noise detected
-                      </p>
-                    </div>
-                  </div>
-                )}
-                
-                {noiseLevel <= NOISE_THRESHOLD && (
-                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <div className="flex items-center space-x-2">
-                      <Check className="w-5 h-5 text-green-600" />
-                      <p className="text-green-800 text-sm font-medium">
-                        Good: Low noise environment detected
                       </p>
                     </div>
                   </div>

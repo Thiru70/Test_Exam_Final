@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import ResultAnalyzer from "./ResultAnalyzer"; // Import the new component
+import ResultAnalyzer from "./ResultAnalyzer";
 
 const MarksObtainedTab = ({ test, testID, submissionID }) => {
   const [showAnalyzer, setShowAnalyzer] = useState(false);

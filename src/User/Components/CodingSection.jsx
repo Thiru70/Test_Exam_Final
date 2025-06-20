@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Play, Video, Mic, MicOff, Camera, Move, Loader2, Maximize, AlertTriangle } from 'lucide-react';
 import SimpleCodeEditor from './MonacoCodeEditer';
 import LiveFaceMonitoring from './LiveMonitoring';
+import LiveAudioMonitor from './LiveAudioMonitor';
+import Toast from './ToastComponent';
 
 const CodingSection = ({ onNavigateToInterview }) => {
   // Core state
@@ -9,6 +11,7 @@ const CodingSection = ({ onNavigateToInterview }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [toasts, setToasts] = useState([]);
 
   // Code state management for all questions
   const [questionCodes, setQuestionCodes] = useState({});
@@ -27,6 +30,9 @@ const CodingSection = ({ onNavigateToInterview }) => {
   // Face monitoring violations
   const [faceMonitoringViolations, setFaceMonitoringViolations] = useState(0);
   const [showFaceViolationWarning, setShowFaceViolationWarning] = useState(false);
+
+  //audio monitoring
+  const [audioViolations, setAudioViolations] = useState(0);
 
   // UI state
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -58,17 +64,39 @@ const CodingSection = ({ onNavigateToInterview }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const showToast = useCallback((message, type = 'info') => {
+  const id = Date.now();
+  setToasts(prev => [...prev, { id, message, type }]);
+}, []);
+
+const removeToast = useCallback((id) => {
+  setToasts(prev => prev.filter(toast => toast.id !== id));
+}, []);
+
+const handleAudioViolation = useCallback((violation) => {
+  const newCount = audioViolations + 1;
+  setAudioViolations(newCount);
+  
+  console.log('Audio violation:', violation);
+  
+  // Optional: Auto-submit after excessive violations
+  if (newCount >= 10) {
+    setTimeout(() => handleSubmitTest(true), 2000);
+  }
+}, [audioViolations]);
+
   // Test data for SimpleCodeEditor
-  const getTestSessionData = useCallback(() => ({
-    userId: localStorage.getItem('student_id'),
-    testId: TEST_ID,
-    startTime: testStartTime,
-    warningCount: fullscreenViolations,
-    copyPasteViolations: copyPasteViolations,
-    faceMonitoringViolations: faceMonitoringViolations,
-    timeRemaining,
-    totalDuration: testData?.duration * 60 || 0
-  }), [testStartTime, fullscreenViolations, copyPasteViolations, faceMonitoringViolations, timeRemaining, testData?.duration]);
+const getTestSessionData = useCallback(() => ({
+  userId: localStorage.getItem('student_id'),
+  testId: TEST_ID,
+  startTime: testStartTime,
+  warningCount: fullscreenViolations,
+  copyPasteViolations: copyPasteViolations,
+  faceMonitoringViolations: faceMonitoringViolations,
+  audioViolations: audioViolations, // Add this line
+  timeRemaining,
+  totalDuration: testData?.duration * 60 || 0
+}), [testStartTime, fullscreenViolations, copyPasteViolations, faceMonitoringViolations, audioViolations, timeRemaining, testData?.duration]);
 
   // Handle face monitoring violations
   const handleFaceViolation = useCallback((violation) => {
@@ -503,8 +531,8 @@ const CodingSection = ({ onNavigateToInterview }) => {
               <div className="flex items-center gap-6">
                 <div className="text-sm">Total Marks: {testData?.totalMarks}</div>
                 <div className="text-sm">
-                  Violations: FS({fullscreenViolations}/3) | FM({faceMonitoringViolations}/5) | CP({copyPasteViolations}/5)
-                </div>
+  Violations: FS({fullscreenViolations}/3) | FM({faceMonitoringViolations}/5) | CP({copyPasteViolations}/5) | Audio({audioViolations}/10)
+</div>
                 <div className={`px-4 py-2 rounded-lg font-bold text-lg ${getTimerColor()}`}>
                   ⏰ {formatTime(timeRemaining)}
                 </div>
@@ -591,6 +619,12 @@ const CodingSection = ({ onNavigateToInterview }) => {
             onTestResults={handleTestResults}
             onCodeChange={(newCode) => handleCodeChange(currentQuestionIndex, newCode)}
           />
+
+          <LiveAudioMonitor
+  isActive={testReady}
+  onViolation={handleAudioViolation}
+  showToast={showToast}
+/>
 
           {/* Live Face Monitoring Widget - Positioned at bottom-right and draggable */}
           <LiveFaceMonitoring
@@ -707,6 +741,14 @@ const CodingSection = ({ onNavigateToInterview }) => {
           )}
         </>
       )}
+      {toasts.map(toast => (
+  <Toast
+    key={toast.id}
+    message={toast.message}
+    type={toast.type}
+    onClose={() => removeToast(toast.id)}
+  />
+))}
 
       {/* Success Popup */}
       {showSuccessPopup && (

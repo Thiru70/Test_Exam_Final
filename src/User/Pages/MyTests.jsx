@@ -25,7 +25,7 @@ const MyTests = () => {
       // Show welcome toast
       const studentName = studentData.name || studentData.student_name || 'Student';
       setToast({
-        message: `Welcome back, ${studentName}! Your tests are ready.`,
+        message: `Welcome back, ${studentName}! Your tests will appear here.`,
         type: 'success'
       });
     }
@@ -239,11 +239,13 @@ const MyTests = () => {
       )}
       
       <div className="p-6 bg-white min-h-screen">
-        {/* Header Section */}
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-1">Ongoing test</h2>
-          <p className="text-sm text-gray-600">Round {currentRound}</p>
-        </div>
+        {/* Header Section - Only show when there are tests */}
+        {displayedTests.length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-1">Ongoing test</h2>
+            <p className="text-sm text-gray-600">Round {currentRound}</p>
+          </div>
+        )}
 
         {/* Tests Grid or Empty State */}
         {displayedTests.length === 0 ? (

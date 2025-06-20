@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { User, GraduationCap, Briefcase, FileText, Edit3, Save, X, Upload, Trash2 } from "lucide-react";
 
 import Toast from "./ToastComponent"
+import { uploadToS3 } from "../../utils/aws/awsupload"; // Update this path
 
 const ProfileInformation = ({ studentData, setStudentData }) => {
     const [loading, setLoading] = useState(true);
@@ -133,23 +134,13 @@ const ProfileInformation = ({ studentData, setStudentData }) => {
 
         setUploadingResume(true);
         try {
-            const formData = new FormData();
-            formData.append('resume', selectedFile);
-            formData.append('student_id', studentData.student_id);
-
-            const response = await fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/student/upload-resume', {
-                method: 'POST',
-                body: formData,
-            });
-
-            if (!response.ok) {
-                throw new Error(`Upload failed: ${response.status}`);
-            }
-
-            const result = await response.json();
+            // Upload to S3 using your custom function
+            const resumeUrl = await uploadToS3(selectedFile, 'resumes');
+            
+            // Update the edited data with the new resume URL
             setEditedData(prev => ({
                 ...prev,
-                resume_url: result.resume_url || result.url
+                resume_url: resumeUrl
             }));
 
             setSelectedFile(null);
@@ -157,6 +148,7 @@ const ProfileInformation = ({ studentData, setStudentData }) => {
             setToast({ message: 'Resume uploaded successfully!', type: 'success' });
 
         } catch (err) {
+            console.error('Resume upload error:', err);
             setToast({ message: 'Failed to upload resume. Please try again.', type: 'error' });
         } finally {
             setUploadingResume(false);
@@ -219,6 +211,7 @@ const ProfileInformation = ({ studentData, setStudentData }) => {
             setToast({ message: 'Profile updated successfully!', type: 'success' });
 
         } catch (err) {
+            console.error('Save error:', err);
             setToast({ message: 'Failed to update profile. Please try again.', type: 'error' });
         } finally {
             setSaving(false);

@@ -282,8 +282,8 @@ const TestCases = ({ testCases }) => (
       {testCases && testCases.map((testCase, tcIndex) => (
         <div key={tcIndex} className="flex items-center gap-3 p-2 bg-gray-50 rounded">
           <div className={`w-3 h-3 rounded-full ${
-            testCase.status === 'passed' ? 'bg-green-500' : 
-            testCase.status === 'failed' ? 'bg-red-500' : 'bg-gray-400'
+            testCase.status === 'pass' ? 'bg-green-500' : 
+            testCase.status === 'fail' ? 'bg-red-500' : 'bg-gray-400'
           }`}></div>
           <div className="flex-1 text-sm">
             <span className="text-gray-600">Input: </span>
@@ -291,9 +291,9 @@ const TestCases = ({ testCases }) => (
             <span className="text-gray-600 ml-4">Expected: </span>
             <span className="font-mono">{testCase.expectedOutput}</span>
             <span className={`ml-4 px-2 py-1 rounded text-xs ${
-              testCase.status === 'passed' ? 'bg-green-100 text-green-800' :
-              testCase.status === 'failed' ? 'bg-red-100 text-red-800' :
-              'bg-gray-100 text-gray-800'
+              testCase.status === 'pass' ? 'bg-green-100 text-green-800' :
+              testCase.status === 'fail' ? 'bg-red-100 text-red-800' :
+              'bg-blue-100 text-gray-800'
             }`}>
               {testCase.status.replace('_', ' ').toUpperCase()}
             </span>

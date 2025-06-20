@@ -23,6 +23,42 @@ const ResultsList = ({ onViewTest }) => {
     fetchTests();
   }, []);
 
+  // Empty State Illustration Component
+  const EmptyStateIllustration = () => (
+    <div className="flex flex-col items-center justify-center py-16 px-6">
+      {/* Animated Illustration */}
+      <div className="relative mb-8">
+        <div className="w-32 h-32 bg-gradient-to-br from-blue-100 to-indigo-200 rounded-full flex items-center justify-center relative overflow-hidden">
+          {/* Floating elements animation */}
+          <div className="absolute inset-0">
+            <div className="absolute top-4 left-8 w-3 h-3 bg-blue-300 rounded-full animate-bounce" style={{animationDelay: '0s'}}></div>
+            <div className="absolute top-8 right-6 w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{animationDelay: '0.5s'}}></div>
+            <div className="absolute bottom-6 left-6 w-2.5 h-2.5 bg-blue-400 rounded-full animate-bounce" style={{animationDelay: '1s'}}></div>
+          </div>
+          
+          {/* Main Icon */}
+          <svg className="w-16 h-16 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        
+        {/* Decorative rings */}
+        <div className="absolute inset-0 rounded-full border-2 border-blue-200 animate-ping opacity-20"></div>
+        <div className="absolute inset-2 rounded-full border border-indigo-200 animate-pulse opacity-30"></div>
+      </div>
+      
+      {/* Text Content */}
+      <div className="text-center max-w-md">
+        <h3 className="text-xl font-semibold text-gray-900 mb-3">
+          No Tests Available Right Now
+        </h3>
+        <p className="text-gray-600 mb-6 leading-relaxed">
+          Looks like there are no tests scheduled for you at the moment. Check back later or contact your instructor if you believe this is an error.
+        </p>
+      </div>
+    </div>
+  );
+
   // Function to get test title based on type
   const getTestTitle = (type) => {
     switch (type?.toLowerCase()) {
@@ -114,7 +150,6 @@ const ResultsList = ({ onViewTest }) => {
     <div className="p-6 bg-white min-h-screen">
       <div className="mb-6">
         <h2 className="text-xl font-semibold text-gray-800 mb-1">Results</h2>
-        <p className="text-sm text-gray-500">Round 1</p>
       </div>
 
       {loading ? (
@@ -131,31 +166,8 @@ const ResultsList = ({ onViewTest }) => {
           <p className="text-gray-400 mt-1 text-xs">Please wait while we fetch your data</p>
         </div>
       ) : tests.length === 0 ? (
-        <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-          {/* Illustration */}
-          <div className="mb-6">
-            <svg
-              className="w-32 h-32 mx-auto text-gray-300"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-          </div>
-          
-          {/* Content */}
-        
-          <p className="text-gray-500 mb-4 max-w-md mx-auto">
-            You haven't completed any tests yet. Once you take your first assessment, 
-            your results will appear here.
-          </p>
+        <div className="bg-white rounded-lg border border-gray-200">
+          <EmptyStateIllustration />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

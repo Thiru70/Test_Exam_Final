@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Camera, Flag, Clock, User, Loader2, Maximize, AlertTriangle, Eye, EyeOff, RotateCcw } from 'lucide-react';
+import LiveAudioMonitor from './LiveAudioMonitor'; // Adjust path as needed
+import Toast from './ToastComponent';
 
 const AptitudeTest = ({ onNavigateToCoding }) => {
     const BASE_URL = 'https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev';
@@ -35,6 +37,10 @@ const AptitudeTest = ({ onNavigateToCoding }) => {
     const [faceStatusMessage, setFaceStatusMessage] = useState('Initializing face detection...');
     const [lastCapturedImage, setLastCapturedImage] = useState(null);
     const [faceMatchingEnabled, setFaceMatchingEnabled] = useState(false);
+
+    const [showToast, setShowToast] = useState(false);
+const [toastMessage, setToastMessage] = useState('');
+const [toastType, setToastType] = useState('warning');
     
     const videoRef = useRef(null);
     const captureCanvasRef = useRef(null);
@@ -63,6 +69,18 @@ const AptitudeTest = ({ onNavigateToCoding }) => {
             console.error('Error saving test session:', error);
         }
     };
+    const handleToastDisplay = (message, type = 'warning') => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 4000);
+};
+
+// 4. Add this audio violation handler after your existing handlers
+const handleAudioViolation = ({ type, level, noiseLevel, count }) => {
+    setViolationCount(prev => prev + 1);
+    // Optional: Add to your existing violation tracking if needed
+};
 
     // Load saved test session
     const loadTestSession = () => {
@@ -878,6 +896,19 @@ const AptitudeTest = ({ onNavigateToCoding }) => {
                             <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
                         </div>
                     </div>
+                     <LiveAudioMonitor 
+            isActive={testStarted && timeLeft > 0}
+            onViolation={handleAudioViolation}
+            showToast={handleToastDisplay}
+        />
+
+        {showToast && (
+            <Toast 
+                message={toastMessage}
+                type={toastType}
+                onClose={() => setShowToast(false)}
+            />
+        )}
 
                     {/* Submit Button */}
                     <button onClick={handleSubmit} disabled={submitting}
