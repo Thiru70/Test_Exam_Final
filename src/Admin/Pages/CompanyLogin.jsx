@@ -74,7 +74,7 @@ export default function CompanyLoginForm() {
         <div className="absolute top-6 right-8 text-sm text-gray-400 ">
           Already have an account?{" "}
           <Link
-            to="/information"
+            to="/email-verification"
             className="text-blue-600 hover:underline font-medium"
           >
             Sign up
@@ -124,7 +124,7 @@ export default function CompanyLoginForm() {
               <div className="text-red-500 text-xs mt-1">{errors.password}</div>
             )}
           </div>
-          <Link to={'/forget-password'} className="w-[75%] text-md underline text-blue-500 flex justify-end">Forget Password</Link>
+          <Link to={'/reset-email-verification'} className="w-[75%] text-md underline text-blue-500 flex justify-end">Forget Password</Link>
           <div className="w-[90%] mt-5 text-center">
             <button
               type="submit"

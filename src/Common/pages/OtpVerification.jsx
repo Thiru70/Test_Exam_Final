@@ -11,7 +11,6 @@ const OtpVerification = () => {
   const [otp, setOtp] = useState(['', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(30);
-  const [error, setError] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
   const email = new URLSearchParams(location.search).get('email') || '';
@@ -45,7 +44,6 @@ const OtpVerification = () => {
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
-    setError('');
     
     // Auto-focus next input field after filling current one
     if (value && index < 4) {
@@ -62,7 +60,6 @@ const OtpVerification = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
     
     // Get stored OTP
     const enteredOtp = otp.join('');
@@ -82,13 +79,11 @@ fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/api/submit-otp
       navigate(`/information`);
       toast.success('Otp verify succesfully')
     } else {
-      setError(data.message || 'Invalid verification code.');
       toast.error(data.message || 'Invalid verification code.')
     }
   })
   .catch(err => {
-    setLoading(false);
-    setError('Server error. Please try again.');
+    setLoading(false)
     toast.error('Server error. Please try again.')
     console.error(err);
   });
@@ -106,7 +101,6 @@ fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/api/submit-otp
     
     if (!userEmail) {
       setLoading(false);
-      alert('Email address not found. Please go back to the previous step.');
       toast.error('Email address not found. Please go back to the previous step.')
       return;
     }
@@ -133,7 +127,7 @@ fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/api/submit-otp
   .then(res => res.json())
   .then(data => {
     setLoading(false);
-    if (data.success) {
+    if (data) {
       toast.success('A new verification code has been sent.');
     } else {
       toast.error(data.message || 'Failed to resend verification code.');
@@ -159,11 +153,11 @@ fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/api/submit-otp
         subtitle={`We've sent a verification code to ${email}. Please enter it below.`}
       >
         <form onSubmit={handleSubmit} className="flex flex-col gap-6 mt-8 w-full max-w-md">
-          {error && (
+          {/* {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-md text-sm">
               {error}
-            </div>
-          )}
+            </div> */}
+          {/* )} */}
           
           <div className="flex justify-center gap-4">
             {otp.map((digit, index) => (

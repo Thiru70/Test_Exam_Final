@@ -18,7 +18,7 @@ const HomePage = () => {
             type="company"
             title="Company"
             description="For recruiters posting jobs or campus drives at partner colleges"
-            to="/email-verification?type=company"
+            to="/login"
           />
           
           <OptionCard 

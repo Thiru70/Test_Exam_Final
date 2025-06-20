@@ -9,8 +9,7 @@ const EmailVerification = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
-  const userType = new URLSearchParams(location.search).get('type') || 'student';
+  const userType = "company"
 
   const handleSubmit = async (e) => {
     e.preventDefault();
