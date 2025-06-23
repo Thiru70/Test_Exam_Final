@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Sidebar from '../../Common/components/Sidebar';
 
 const styles = `
@@ -108,8 +108,8 @@ const StudentLogin = () => {
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
-    studentId: 'STU3f6da641',
-    password: '14-06-2000'
+    studentId: '',
+    password: ''
   });
   
   const [showPassword, setShowPassword] = useState(false);
@@ -219,7 +219,15 @@ const StudentLogin = () => {
       <div className="flex min-h-screen w-full bg-white">
         {/* Left side - Sidebar with exam sheets (1/3 width) */}
         <Sidebar />
-        
+        <div className="absolute top-40 right-20 text-sm text-gray-400">
+          If you don't have an account?
+          <Link
+            to="/Student-RegistrationForm"
+            className="text-blue-600 hover:underline font-medium"
+          >
+            Sign Up
+          </Link>
+        </div>
         {/* Right side - Auth Content (remaining width) */}
         <AuthCard 
           title="Exam Portal" 

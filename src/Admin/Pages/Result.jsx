@@ -1,15 +1,19 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
+import { Loader2 } from "lucide-react";
 
 const Result = () => {
   const [testData, setTestData] = useState([]);
+  const [loading,setLoading] = useState(false)
   const navigate = useNavigate();
   const email = localStorage.getItem("adminEmail");
 
   const fetchAllTests = async () => {
+    setLoading(true)
     const response = await axiosInstance.get(`/tests?createdBy=${email}`);
     setTestData(response.data);
+    setLoading(false)
   };
 
   function getRoundLabel(type) {
@@ -34,21 +38,18 @@ const Result = () => {
 
   useEffect(() => {
     fetchAllTests();
-    // eslint-disable-next-line
   }, []);
 
-  const getStatusStyles = (status) => {
-    switch (status) {
-      case "Passed":
-        return "text-green-600 border-green-400";
-      case "Failed":
-        return "text-red-600 border-red-400";
-      case "Active":
-        return "text-blue-600 border-blue-400";
-      default:
-        return "text-gray-600 border-gray-300";
-    }
-  };
+  if (loading) {
+    return (
+        <div className="min-h-screen bg-white flex items-center justify-center">
+            <div className="text-center">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-500" />
+                <p className="text-gray-600">Loading results...</p>
+            </div>
+        </div>
+    );
+}
 
   return (
     <div className="p-6 space-y-8">

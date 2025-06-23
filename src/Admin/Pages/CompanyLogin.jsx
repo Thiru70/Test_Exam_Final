@@ -24,7 +24,6 @@ export default function CompanyLoginForm() {
       toast.error("Enter a valid email address");
       isValid = false;
     }
-  
     if (!formData.password) {
       toast.error("Password is required");
       isValid = false;

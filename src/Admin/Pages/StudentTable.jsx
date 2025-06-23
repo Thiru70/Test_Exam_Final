@@ -1,4 +1,4 @@
-import { EyeIcon, Trash } from 'lucide-react';
+import { EyeIcon, Loader2, Trash } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { IoIosMenu } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
@@ -141,14 +141,17 @@ const StudentTable = () => {
         });
     };
 
+
     if (loading) {
         return (
-            <div className="flex justify-center items-center h-64">
-                <div className="text-lg">Loading student data...</div>
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-500" />
+                    <p className="text-gray-600">Loading Candidate List...</p>
+                </div>
             </div>
         );
     }
-
     const handeleUserDelete= async(getEmail) => {
         setCandidateDelete(true)
         await axiosInstance.delete(`/company/user/${getEmail}`)

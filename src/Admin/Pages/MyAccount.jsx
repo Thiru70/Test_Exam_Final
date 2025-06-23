@@ -2,15 +2,19 @@ import React, { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import { ToastContainer,toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css"
+import { Loader2 } from "lucide-react";
 
 const ProfileForm = () => {
   const email = localStorage.getItem("adminEmail");
   const [profileData, setProfileData] = useState({});
   const [isEditing, setIsEditing] = useState(false);
+  const [loading,setLoading] = useState(false)
 
   const fetchProfileData = async () => {
+    setLoading(true)
     const response = await axiosInstance.get(`/company/profile/${email}`);
     setProfileData(response.data.profile);
+    setLoading(false)
   };
 
   useEffect(() => {
@@ -25,9 +29,19 @@ const ProfileForm = () => {
     }));
   };
 
+  if (loading) {
+    return (
+        <div className="min-h-screen bg-white flex items-center justify-center">
+            <div className="text-center">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-500" />
+                <p className="text-gray-600">Loading...</p>
+            </div>
+        </div>
+    );
+}
+
   const handleEditClick = () => {
     if (isEditing) {
-      // Save logic (can be a PUT/PATCH API call)
       axiosInstance.put(`/company/profile/${email}`, profileData)
         .then(res => {
           console.log("Saved successfully", res.data);

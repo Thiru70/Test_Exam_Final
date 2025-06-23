@@ -4,6 +4,7 @@ import axiosInstance from "../../utils/axiosInstance";
 import { Trash } from "lucide-react";
 
 const CandidateList = () => {
+  const [loading,setLoading] = useState(false)
   const [selected, setSelected] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [candidateData, setCandidateData] = useState([]);
@@ -29,20 +30,32 @@ const CandidateList = () => {
   };
 
   const fetchAllStudents = async () => {
+    setLoading(true)
     const response = await axiosInstance.get("student/all");
     console.log(response.data.students, "responseData");
     setCandidateData(response?.data?.students);
+    setLoading(false)
   };
 
   useEffect(() => {
     fetchAllStudents();
   }, []);
 
+  if (loading) {
+    return (
+        <div className="min-h-screen bg-white flex items-center justify-center">
+            <div className="text-center">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-500" />
+                <p className="text-gray-600">Loading questions...</p>
+            </div>
+        </div>
+    );
+}
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold text-[#333B69]">Candidate list</h2>
-        
       </div>
 
       <table className="w-full table-auto border-collapse text-sm">
