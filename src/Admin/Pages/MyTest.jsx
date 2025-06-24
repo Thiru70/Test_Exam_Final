@@ -7,6 +7,7 @@ import { Edit, Loader2, Trash } from "lucide-react";
 import * as XLSX from "xlsx";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+const fallbackImage = "https://cdn-icons-png.flaticon.com/512/4076/4076549.png"; 
 
 const MyTest = () => {
   const navigate = useNavigate();
@@ -146,6 +147,19 @@ const MyTest = () => {
         </div>
     );
 }
+
+  if (!loading && testData.length === 0) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-white">
+        <img
+          src={fallbackImage}
+          alt="No candidates"
+          className="w-64 h-64 opacity-70"
+        />
+        <p className="text-2xl text-gray-500 font-semibold">No Test found</p>
+      </div>
+    );
+  }
 
   return (
     <>

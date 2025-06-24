@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+const fallbackImage = "https://cdn-icons-png.flaticon.com/512/4076/4076549.png"; 
 
 const StudentTable = () => {
   const navigate = useNavigate();
@@ -125,6 +126,13 @@ const StudentTable = () => {
     });
   };
 
+  const handeleUserDelete = async (getEmail) => {
+    setCandidateDelete(true);
+    await axiosInstance.delete(`/company/user/${getEmail}`);
+    toast.success("successfully deleted the user!");
+    fetchStudentData()
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -135,12 +143,21 @@ const StudentTable = () => {
       </div>
     );
   }
-  const handeleUserDelete = async (getEmail) => {
-    setCandidateDelete(true);
-    await axiosInstance.delete(`/company/user/${getEmail}`);
-    toast.success("successfully deleted the user!");
-    fetchStudentData()
-  };
+
+  if (!loading && currentCandidates.length === 0) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-white">
+        <img
+          src={fallbackImage}
+          alt="No candidates"
+          className="w-64 h-64 opacity-70"
+        />
+        <p className="text-2xl text-gray-500 font-semibold">No candidates found</p>
+      </div>
+    );
+  }
+  
+
 
   return (
     <>

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
 import { Loader2 } from "lucide-react";
+const fallbackImage = "https://cdn-icons-png.flaticon.com/512/4076/4076549.png"; 
 
 const Result = () => {
   const [testData, setTestData] = useState([]);
@@ -51,6 +52,18 @@ const Result = () => {
     );
 }
 
+if (!loading && testData.length === 0) {
+  return (
+    <div className="min-h-[60vh] flex flex-col items-center justify-center bg-white">
+      <img
+        src={fallbackImage}
+        alt="No candidates"
+        className="w-64 h-64 opacity-70"
+      />
+      <p className="text-2xl text-gray-500 font-semibold">No Results found</p>
+    </div>
+  );
+}
   return (
     <div className="p-6 space-y-8">
       {Object.entries(groupedTests).map(([round, tests]) =>
