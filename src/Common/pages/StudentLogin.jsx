@@ -219,15 +219,7 @@ const StudentLogin = () => {
       <div className="flex min-h-screen w-full bg-white">
         {/* Left side - Sidebar with exam sheets (1/3 width) */}
         <Sidebar />
-        <div className="absolute top-40 right-20 text-sm text-gray-400">
-          If you don't have an account?
-          <Link
-            to="/Student-RegistrationForm"
-            className="text-blue-600 hover:underline font-medium"
-          >
-            Sign Up
-          </Link>
-        </div>
+
         {/* Right side - Auth Content (remaining width) */}
         <AuthCard 
           title="Exam Portal" 

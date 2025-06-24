@@ -50,11 +50,8 @@ const ResultsList = ({ onViewTest }) => {
       {/* Text Content */}
       <div className="text-center max-w-md">
         <h3 className="text-xl font-semibold text-gray-900 mb-3">
-          No Tests Available Right Now
+          No Test Results Available
         </h3>
-        <p className="text-gray-600 mb-6 leading-relaxed">
-          Looks like there are no tests scheduled for you at the moment. Check back later or contact your instructor if you believe this is an error.
-        </p>
       </div>
     </div>
   );

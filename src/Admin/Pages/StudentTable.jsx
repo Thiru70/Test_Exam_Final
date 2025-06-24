@@ -31,6 +31,7 @@ const StudentTable = () => {
 
     return studentTenth >= requiredTenth && studentTwelfth >= requiredTwelfth;
   };
+
   const fetchStudentData = async () => {
     try {
       setLoading(true);
@@ -43,7 +44,8 @@ const StudentTable = () => {
       }
 
       const data = await response.json();
-      toast.success("Successfylly fetched all candidate list");
+      toast.success("Successfully fetched all candidate list");
+      
       // Transform API data to match our component needs
       const transformedData = data.students.map((student, index) => {
         const studentData = {
@@ -65,6 +67,7 @@ const StudentTable = () => {
           contact: student.contact,
           dob: student.dob, // Store DOB from API
           student_id: student.student_id, // Store student_id from API
+          full_name: student.full_name, // Store full_name from API
         };
 
         // Check eligibility based on API criteria
@@ -116,13 +119,26 @@ const StudentTable = () => {
       state: {
         studentData: {
           email: student.email,
-          full_name: student.name,
+          full_name: student.full_name, // Changed from student.name to student.full_name
           dob: student.dob || "",
-          student_id: student.student_id || "", // Pass student_id from API
+          student_id: student.student_id || "",
           id: student.id,
         },
       },
     });
+  };
+
+  const handleUserDelete = async (getEmail) => {
+    setCandidateDelete(true);
+    try {
+      await axiosInstance.delete(`/company/user/${getEmail}`);
+      toast.success("Successfully deleted the user!");
+      fetchStudentData();
+    } catch (error) {
+      toast.error("Error deleting user");
+    } finally {
+      setCandidateDelete(false);
+    }
   };
 
   if (loading) {
@@ -135,12 +151,6 @@ const StudentTable = () => {
       </div>
     );
   }
-  const handeleUserDelete = async (getEmail) => {
-    setCandidateDelete(true);
-    await axiosInstance.delete(`/company/user/${getEmail}`);
-    toast.success("successfully deleted the user!");
-    fetchStudentData()
-  };
 
   return (
     <>
@@ -227,14 +237,14 @@ const StudentTable = () => {
                   <td className="px-4 py-2">{student.email}</td>
                   <td className="px-4 py-2">
                     <button
-                      className="text-blue-600  hover:scale-110 transition"
-                      onClick={() => navigate("/studentEmail-form")}
+                      className="text-blue-600 hover:scale-110 transition"
+                      onClick={() => handleViewClick(student)} 
                     >
                       <EyeIcon />
                     </button>
                     <button
-                      className="text-blue-600 hover:scale-110 transition ml-3 "
-                      onClick={() => handeleUserDelete(student.email)}
+                      className="text-blue-600 hover:scale-110 transition ml-3"
+                      onClick={() => handleUserDelete(student.email)}
                     >
                       <Trash />
                     </button>
