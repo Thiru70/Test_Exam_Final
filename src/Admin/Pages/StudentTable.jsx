@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosInstance";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+const fallbackImage = "https://cdn-icons-png.flaticon.com/512/4076/4076549.png"; 
 
 const StudentTable = () => {
   const navigate = useNavigate();

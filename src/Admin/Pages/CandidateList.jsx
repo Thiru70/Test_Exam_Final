@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import { IoIosMenu } from "react-icons/io";
 import axiosInstance from "../../utils/axiosInstance";
 import { Trash } from "lucide-react";
+const fallbackImage = "https://cdn-icons-png.flaticon.com/512/4076/4076549.png"; 
 
 const CandidateList = () => {
-  const [loading,setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [candidateData, setCandidateData] = useState([]);
@@ -30,11 +31,10 @@ const CandidateList = () => {
   };
 
   const fetchAllStudents = async () => {
-    setLoading(true)
+    setLoading(true);
     const response = await axiosInstance.get("student/all");
-    console.log(response.data.students, "responseData");
-    setCandidateData(response?.data?.students);
-    setLoading(false)
+    setCandidateData(response?.data?.students || []);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -43,14 +43,28 @@ const CandidateList = () => {
 
   if (loading) {
     return (
-        <div className="min-h-screen bg-white flex items-center justify-center">
-            <div className="text-center">
-                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-500" />
-                <p className="text-gray-600">Loading questions...</p>
-            </div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          {/* <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-500" /> */}
+          <div className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-500 border-4 border-blue-200 rounded-full border-t-blue-500"></div>
+          <p className="text-gray-600">Loading questions...</p>
         </div>
+      </div>
     );
-}
+  }
+
+  if (!loading && candidateData.length === 0) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-white">
+        <img
+          src={fallbackImage}
+          alt="No candidates"
+          className="w-32 h-32 mb-4 opacity-70"
+        />
+        <p className="text-lg text-gray-500 font-semibold">No candidates found</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -80,7 +94,6 @@ const CandidateList = () => {
                 {candidate.graduation_percentage}%
               </td>
               <td className="p-2">{candidate.email}</td>
-              
             </tr>
           ))}
         </tbody>
