@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Upload, GraduationCap, Briefcase } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+
 
 const StudentRegistrationForm = () => {
   const [formData, setFormData] = useState({
@@ -167,7 +167,6 @@ const StudentRegistrationForm = () => {
       if (response.ok) {
         console.log('✅ Form submitted successfully to API!');
         alert('Form submitted successfully!');
-        navigate('/StudentLogin')
       } else {
         console.error('❌ API request failed with status:', response.status);
         throw new Error('Failed to submit form');
