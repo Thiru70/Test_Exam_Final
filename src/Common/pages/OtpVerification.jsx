@@ -71,11 +71,10 @@ fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/api/submit-otp
   },
   body: JSON.stringify({ email, otp: enteredOtp, user_type: userType })
 })
-  .then(res => res.json())
-  .then(data => {
-    console.log(data,"data")
-    setLoading(false);
-    if (data.success) {
+  .then(res => {
+    if (res.ok) {
+      setLoading(false);
+      console.log(res.data,"data")
       navigate(`/information`);
       toast.success('Otp verify succesfully')
     } else {
@@ -94,11 +93,11 @@ fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/api/submit-otp
     // Reset timer first
     setTimer(30);
     setLoading(true);
+
+    const userEmail = email || localStorage.getItem('adminEmail');
+    const userType = 'company';
     
-    // Get email from URL or localStorage
-    const userEmail = email || localStorage.getItem('otpEmail');
-    const userType = new URLSearchParams(location.search).get('type') || 'student';
-    
+    console.log(userEmail,userType,"user email and user type")
     if (!userEmail) {
       setLoading(false);
       toast.error('Email address not found. Please go back to the previous step.')
@@ -122,15 +121,14 @@ fetch('https://ak6ymkhnh0.execute-api.us-east-1.amazonaws.com/dev/api/submit-otp
   headers: {
     'Content-Type': 'application/json'
   },
-  body: JSON.stringify({ email: userEmail, user_type: userType })
+  body: JSON.stringify({ email: userEmail, userType: userType })
 })
-  .then(res => res.json())
-  .then(data => {
-    setLoading(false);
-    if (data) {
+  .then(res => {
+    if (res.ok) {
+      setLoading(false);
       toast.success('A new verification code has been sent.');
     } else {
-      toast.error(data.message || 'Failed to resend verification code.');
+      toast.error(res?.data?.message || 'Failed to resend verification code.');
     }
   })
   .catch(err => {

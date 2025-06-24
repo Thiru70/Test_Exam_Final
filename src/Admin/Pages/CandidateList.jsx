@@ -57,7 +57,6 @@ const CandidateList = () => {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold text-[#333B69]">Candidate list</h2>
       </div>
-
       <table className="w-full table-auto border-collapse text-sm">
         <thead className="text-[#718EBF]">
           <tr className="border-b">
