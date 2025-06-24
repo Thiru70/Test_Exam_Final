@@ -11,36 +11,37 @@ export default function CompanyLoginForm() {
     email: "",
     password: "",
   });
-  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 
   const validate = () => {
-    const newErrors = {};
+    let isValid = true;
+  
     if (!formData.email) {
-      newErrors.email = "Employee ID is required";
+      toast.error("Employee ID is required");
+      isValid = false;
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Enter a valid email address";
+      toast.error("Enter a valid email address");
+      isValid = false;
     }
     if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 0) {
-      newErrors.password = "Password must be at least 6 characters";
+      toast.error("Password is required");
+      isValid = false;
+    } else if (formData.password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      isValid = false;
     }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  
+    return isValid;
   };
-
+  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
-    setErrors((prev) => ({
-      ...prev,
-      [name]: "",
-    }));
+ 
   };
 
   const handleSubmit = async (e) => {
@@ -48,10 +49,10 @@ export default function CompanyLoginForm() {
     if (!validate()) return;
     try {
       const response = await axiosInstance.post("/company/login", formData);
-      console.log("Form submitted:", response.data)
-      localStorage.setItem('adminEmail',response.data.email)
-      Cookies.set('token',response.data.token);
+      localStorage.setItem('adminEmail',response?.data?.email)
+      Cookies.set('token',response?.data?.token);
       navigate("/myTest");
+      console.log("Form submitted:", response?.data)
       toast.success("Company logged in successfully!");
     } catch (err) {
       console.error("Submission error:", err);
@@ -94,9 +95,6 @@ export default function CompanyLoginForm() {
                 value={formData.email}
                 onChange={handleInputChange}
               />
-              {errors.email && (
-                <div className="text-red-500 text-xs mt-1">{errors.email}</div>
-              )}
             </div>
           </div>
 
@@ -120,9 +118,6 @@ export default function CompanyLoginForm() {
                 {showPassword ? <Eye /> : <EyeOff />}
               </button>
             </div>
-            {errors.password && (
-              <div className="text-red-500 text-xs mt-1">{errors.password}</div>
-            )}
           </div>
           <Link to={'/reset-email-verification'} className="w-[75%] text-md underline text-blue-500 flex justify-end">Forget Password</Link>
           <div className="w-[90%] mt-5 text-center">

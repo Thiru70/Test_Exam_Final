@@ -95,11 +95,11 @@ const InterviewInvitationWrapper = () => {
 
 const ProtectedRoute = ({ children }) => {
   const token = Cookies.get("token");
+  console.log(token,"token")
   return token ? children : <Navigate to="/company-login" replace />;
 };
 
 function App() {
-
   return (
     <Router>
       <Routes>
@@ -143,6 +143,7 @@ function App() {
         />
         <Route path="/face-detect" element={<FaceDetection />} />
         <Route path="/selection-process" element={<SelectionProcessStages />} />
+        <Route path="/StudentForm" element={<StudentForm />} />
 
         {/* Admin Routes (wrapped in layout) */}
         <Route
@@ -155,7 +156,7 @@ function App() {
           <Route path="/myTest" element={<MyTest />} />
           <Route path="/respondents" element={<Respondents />} />
           <Route path="/results" element={<Result />} />
-          <Route path="/StudentForm" element={<StudentForm />} />
+          
           <Route path="/account" element={<MyAccount />} />
           <Route path="/emailForm" element={<EmailForm />} />
           <Route path="/resultTable" element={<ResultTable />} />

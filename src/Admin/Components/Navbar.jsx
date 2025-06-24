@@ -55,7 +55,7 @@ const Navbar = ({ toggleSidebar }) => {
         <span> My Account</span>
         </div>
        </Link>
-       <Link ref={dropdownRef }  onClick={handleLogout} to="/home" className="px-2 hover:bg-zinc-200">   <span className="flex gap-2"><LogOut className="h-6 w-6"/> Logout</span></Link>
+       <Link ref={dropdownRef }  onClick={handleLogout} to="/login" className="px-2 hover:bg-zinc-200">   <span className="flex gap-2"><LogOut className="h-6 w-6"/> Logout</span></Link>
         </div> : null
       }
 

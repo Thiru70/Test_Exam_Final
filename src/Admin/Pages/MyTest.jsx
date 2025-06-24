@@ -3,7 +3,7 @@ import Folder from "../../Asstes/Folder.png";
 import { Link, useNavigate } from "react-router-dom";
 import { Dialog } from "primereact/dialog";
 import axiosInstance from "../../utils/axiosInstance";
-import { Edit, Trash } from "lucide-react";
+import { Edit, Loader2, Trash } from "lucide-react";
 import * as XLSX from "xlsx";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -11,6 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 const MyTest = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [testData, setTestData] = useState([]);
   const [documentOpen, setDocumentOpen] = useState(false);
   const [eligibility, setEligibility] = useState("");
@@ -20,15 +21,19 @@ const MyTest = () => {
   const email = localStorage.getItem("adminEmail");
 
   const fetchAllTests = async () => {
+    setLoading(true)
     const response = await axiosInstance.get(`/tests?createdBy=${email}`);
     setTestData(response.data);
     // toast.success("Successfully fetched all tests.");
+    setLoading(false)
   };
 
   const handleTestDelete = async (getCurrentTestId) => {
+    setLoading(true)
     await axiosInstance.delete(`/test/${getCurrentTestId}`);
     toast.success("Successfully deleted the test");
     setCurrentTestId(getCurrentTestId);
+    setLoading(false)
   };
 
   const [testName, setTestName] = useState("");
@@ -129,6 +134,18 @@ const MyTest = () => {
   useEffect(() => {
     fetchAllTests();
   }, [currentTestId, documentOpen]);
+
+
+  if (loading) {
+    return (
+        <div className="min-h-screen bg-white flex items-center justify-center">
+            <div className="text-center">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-500" />
+                <p className="text-gray-600">Loading Tests...</p>
+            </div>
+        </div>
+    );
+}
 
   return (
     <>

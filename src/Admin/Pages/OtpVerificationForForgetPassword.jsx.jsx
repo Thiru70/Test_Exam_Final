@@ -133,16 +133,15 @@ const OtpVerificationForForgetPassword = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email: userEmail, user_type: userType }),
+        body: JSON.stringify({ email: userEmail, userType: userType }),
       }
     )
-      .then((res) => res.json())
-      .then((data) => {
-        setLoading(false);
-        if (data.success) {
+      .then((res) => {
+        if (res.ok) {
+          setLoading(false);
           toast.success("A new verification code has been sent.");
         } else {
-          toast.error(data.message || "Failed to resend verification code.");
+          toast.error(res?.data?.message || "Failed to resend verification code.");
         }
       })
       .catch((err) => {
