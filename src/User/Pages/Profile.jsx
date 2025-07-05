@@ -2,7 +2,7 @@ import React from "react";
 
 const ProfilePage = () => {
   return (
-    <div className="min-h-screen bg-blue-200 p-6 flex justify-center">
+    <div className="relative z-0 min-h-screen bg-blue-200 p-6 flex flex-col space-y-4">
       <div className="bg-white rounded-lg shadow-lg p-6 flex gap-6">
         {/* Profile Form */}
         <div className="bg-gray-100 p-6 rounded-lg space-y-4 w-[500px]">
@@ -33,7 +33,7 @@ const ProfilePage = () => {
         </div>
 
         {/* Profile Card */}
-        <div className="w-80 bg-gray-200 rounded-lg p-4 flex flex-col items-center">
+        <div className="w-full md:w-80 bg-gray-200 rounded-lg p-4 flex flex-col items-center">
           {/* Profile Picture */}
           <div className="w-24 h-24 bg-gray-400 rounded-full mb-4"></div>
           <div className="flex gap-2 mb-4">
