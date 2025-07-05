@@ -40,7 +40,7 @@ const RightSidebar = ({
   };
 
   return (
-    <div className="w-80 bg-gray-100 flex flex-col h-full">
+    <div className="w-full sm:w-80 bg-gray-100 flex flex-col h-full">
       <div className="p-6 flex flex-col h-full">
         {/* Profile Picture Section */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-2 text-center flex-shrink-0">
