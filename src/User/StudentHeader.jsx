@@ -57,7 +57,7 @@ const Header = ({ activeItem, setActiveItem }) => {
 
   if (loading) {
     return (
-      <header className="bg-white shadow-sm py-3 px-6 flex items-center justify-between">
+      <header className="bg-white shadow-sm py-3 px-6 flex items-center justify-between mt-10 md:mt-0">
         <div className="flex items-center">
           <h1 className="text-lg font-semibold text-gray-800">Dashboard</h1>
         </div>
