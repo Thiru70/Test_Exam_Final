@@ -30,7 +30,7 @@ const Sidebar = ({ activeItem, setActiveItem }) => {
     <>
       {/* Mobile Header */}
       {isMobile && (
-        <header className="fixed top-0 left-0 right-0 bg-white shadow-sm py-3 px-4 flex items-center z-20">
+        <header className="fixed top-0 left-0 right-0 bg-white shadow-sm py-3 px-4 flex items-center z-20 ">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="text-gray-600 mr-4"
