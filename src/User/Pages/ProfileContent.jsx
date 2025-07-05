@@ -148,7 +148,7 @@ const ProfileContent = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
       {/* Main Content */}
       <div className="flex-1 p-6">
         {renderMainContent()}
