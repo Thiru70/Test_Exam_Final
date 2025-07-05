@@ -418,7 +418,7 @@ const ProfileInformation = ({ studentData, setStudentData }) => {
 
             <div className="bg-white rounded-lg shadow-sm mb-6">
                 {/* Header */}
-                <div className="bg-blue-500 text-white p-4 rounded-t-lg flex items-center justify-between sticky top-0 z-10">
+                <div className="bg-blue-500 text-white p-4 rounded-t-lg flex items-center justify-between sticky top-0 z-0">
                     <div className="flex items-center">
                         <User className="w-5 h-5 mr-2" />
                         <span className="font-semibold">Profile Information</span>
