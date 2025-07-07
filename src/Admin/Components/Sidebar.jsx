@@ -39,12 +39,12 @@ const Sidebar = () => {
     <ToastContainer />
       {/* Mobile Header */}
       {isMobile && (
-        <header className="fixed top-0 left-0 right-0 bg-white shadow-sm py-3 px-4 flex items-center z-20">
+        <header className="fixed top-0 left-0 right-0 z-30 flex items-center justify-start px-4 py-3 bg-white shadow-sm">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-gray-600 mr-4"
+            className="mr-4 text-gray-600"
           >
-            <Icon icon="mdi:menu" className="text-2xl" />
+            <Icon icon="mdi:menu" className="flex items-center text-2xl" />
           </button>
           <h1 className="text-lg font-semibold">Exam Portal</h1>
         </header>
